@@ -23,6 +23,9 @@ jobs:
       - run: npx cap add android
       - run: npx cap sync android
 
+      - name: Generate app icon
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#2A1810' --iconBackgroundColorDark '#2A1810'
+
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
 
