@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2E1B10">
+<meta name="description" content="ع القهوة - منصة الألعاب الشعبية: دومينو، طاولة، ورق وأكتر">
+<title>ع القهوة</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --wood-dark:#2A1810; --wood:#5C3A21; --wood-light:#7A4E2E;
+    --ivory:#FBF6EC; --ink:#262019;
+    --brass:#C89B3C; --brass-light:#E4C878; --brass-dark:#8f6e26;
+    --text-light:#F1E7D6; --text-muted:#c9b79a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background: radial-gradient(ellipse at 50% -10%, var(--wood-light) 0%, var(--wood) 40%, var(--wood-dark) 100%);
+    color:var(--text-light); font-family:'Cairo', sans-serif;
+    -webkit-user-select:none; user-select:none;
+  }
+  #app{ min-height:100vh; display:flex; flex-direction:column; align-items:center;
+        padding: max(28px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); }
+  .hub-icon{ width:96px; height:96px; border-radius:24px; box-shadow:0 6px 18px rgba(0,0,0,.45), 0 0 0 2px var(--brass-dark); margin-bottom:14px; }
+  .brand-title{ font-family:'Amiri', serif; font-weight:700; font-size:clamp(34px, 11vw, 46px); color:var(--brass-light);
+                text-shadow:0 2px 0 rgba(0,0,0,.5), 0 0 24px rgba(200,155,60,.25); margin:0; letter-spacing:1px; }
+  .brand-tag{ font-size:13px; color:var(--text-muted); margin:6px 0 30px; font-weight:600; text-align:center; }
+
+  .games-grid{ width:100%; max-width:420px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .game-card{
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; text-decoration:none;
+    background:linear-gradient(180deg, var(--wood-light), var(--wood));
+    border:1px solid var(--brass-dark); border-radius:14px; padding:16px 10px 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -3px 6px rgba(0,0,0,.3), 0 3px 8px rgba(0,0,0,.4);
+  }
+  .game-card:active{ transform:translateY(1px); }
+  .game-card .thumb{ width:72px; height:72px; border-radius:16px; flex-shrink:0; background-size:cover; background-position:center;
+                      box-shadow:0 0 0 1px rgba(0,0,0,.3), 0 3px 8px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; font-size:34px; overflow:hidden; }
+  .game-card .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .game-card .info{ min-width:0; }
+  .game-card .name{ font-weight:800; font-size:15px; color:var(--text-light); margin:0 0 2px; }
+  .game-card .desc{ font-size:11px; color:var(--text-muted); margin:0; line-height:1.4; }
+
+  .game-card.soon{ opacity:.55; pointer-events:none; }
+  .game-card.soon .badge{ display:block; margin-top:4px; font-size:10px; background:rgba(0,0,0,.35); border:1px solid var(--brass-dark); border-radius:20px; padding:2px 8px; color:var(--text-muted); }
+
+  .hub-footer{ margin-top:auto; padding-top:30px; text-align:center; }
+  .hub-footer .line{ width:50px; height:2px; background:var(--brass-dark); margin:0 auto 10px; }
+  .hub-footer .made{ font-size:11px; color:var(--text-muted); margin:0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <img class="hub-icon" src="icons/icon-192.png" alt="ع القهوة">
+  <h1 class="brand-title">ع القهوة</h1>
+  <p class="brand-tag">اختار اللعبة اللي عايز تلعبها</p>
+
+  <div class="games-grid">
+    <a class="game-card" href="games/domino/index.html">
+      <div class="thumb"><img src="icons/games/domino.png" alt="دومينو"></div>
+      <div class="info">
+        <p class="name">دومينو</p>
+        <p class="desc">5 مستويات صعوبة</p>
+      </div>
+    </a>
+
+    <div class="game-card soon">
+      <div class="thumb" style="background:linear-gradient(155deg,#7A4E2E,#3e2515);">🎲</div>
+      <div class="info">
+        <p class="name">طاولة</p>
+        <p class="desc">باكجامون</p>
+        <span class="badge">قريبًا</span>
+      </div>
+    </div>
+
+    <div class="game-card soon">
+      <div class="thumb" style="background:linear-gradient(155deg,#B85242,#5c2318);">🃏</div>
+      <div class="info">
+        <p class="name">ورق</p>
+        <p class="desc">تركس</p>
+        <span class="badge">قريبًا</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub-footer">
+    <div class="line"></div>
+    <p class="made">ع القهوة</p>
+  </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js', { scope: './' }).catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
