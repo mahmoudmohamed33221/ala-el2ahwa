@@ -1,9 +1,0 @@
-{
-  "appId": "com.alaelahwa.domino",
-  "appName": "ع القهوة",
-  "webDir": "www",
-  "backgroundColor": "#2A1810",
-  "android": {
-    "buildOptions": {}
-  }
-}
