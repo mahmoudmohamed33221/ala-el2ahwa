@@ -23,8 +23,61 @@ jobs:
       - run: npx cap add android
       - run: npx cap sync android
 
-      - name: Generate app icon
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#2A1810' --iconBackgroundColorDark '#2A1810'
+      - name: Generate app icon (full bleed, no background layer)
+        run: |
+          SRC=assets/icon.png
+          for entry in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            density="${entry%%:*}"
+            size="${entry##*:}"
+            dir="android/app/src/main/res/mipmap-$density"
+            mkdir -p "$dir"
+            convert "$SRC" -resize ${size}x${size}^ -gravity center -extent ${size}x${size} "$dir/ic_launcher.png"
+            cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
+            cp "$dir/ic_launcher.png" "$dir/ic_launcher_foreground.png"
+          done
+          rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+      - name: Enable fullscreen immersive mode
+        run: |
+          mkdir -p android/app/src/main/java/com/alaelahwa/domino
+          cat > android/app/src/main/java/com/alaelahwa/domino/MainActivity.java << 'JAVAEOF'
+          package com.alaelahwa.domino;
+
+          import android.os.Bundle;
+          import androidx.core.view.WindowCompat;
+          import androidx.core.view.WindowInsetsCompat;
+          import androidx.core.view.WindowInsetsControllerCompat;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  hideSystemBars();
+              }
+
+              @Override
+              public void onWindowFocusChanged(boolean hasFocus) {
+                  super.onWindowFocusChanged(hasFocus);
+                  if (hasFocus) {
+                      hideSystemBars();
+                  }
+              }
+
+              private void hideSystemBars() {
+                  WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+                  WindowInsetsControllerCompat controller =
+                      WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                  if (controller != null) {
+                      controller.hide(WindowInsetsCompat.Type.systemBars());
+                      controller.setSystemBarsBehavior(
+                          WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BY_SWIPE
+                      );
+                  }
+              }
+          }
+          JAVAEOF
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
