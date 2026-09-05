@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2E1B10">
+<meta name="description" content="لعبة دومينو ع القهوة - العب دومينو ضد خصم ذكي بمستويات صعوبة متعددة">
+<title>ع القهوة</title>
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" type="image/png" sizes="512x512" href="../../icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --wood-dark:#2A1810; --wood:#5C3A21; --wood-light:#7A4E2E; --wood-grain:#4a2f1c;
+    --ivory:#FBF6EC; --ivory-shade:#EFE6D2; --ink:#262019;
+    --brass:#C89B3C; --brass-light:#E4C878; --brass-dark:#8f6e26;
+    --brick:#9C3B2E; --brick-light:#B85242; --olive:#4C7A52;
+    --text-light:#F1E7D6; --text-muted:#c9b79a;
+    --table-wood-dark:#3e2515;
+    --table-wood:#5C3A21;
+    --table-wood-light:#7A4E2E;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(ellipse at 50% -10%, var(--wood-light) 0%, var(--wood) 40%, var(--wood-dark) 100%);
+    color:var(--text-light); font-family:'Cairo', sans-serif;
+    overflow:hidden; -webkit-user-select:none; user-select:none;
+  }
+  #app{ position:fixed; inset:0; display:flex; flex-direction:column; }
+  .screen{ position:absolute; inset:0; display:none; flex-direction:column; padding: max(10px, env(safe-area-inset-top)) 4px max(10px, env(safe-area-inset-bottom)); overflow-y:auto; }
+  .screen.active{display:flex;}
+  .frame{ flex:1; display:flex; flex-direction:column; border:2px solid var(--brass-dark); border-radius:6px; box-shadow: inset 0 0 0 6px rgba(0,0,0,.15), inset 0 0 40px rgba(0,0,0,.35); padding:22px 8px; background: linear-gradient(160deg, rgba(255,255,255,.02), rgba(0,0,0,.15)); }
+  #screen-menu .frame{align-items:center; justify-content:center; text-align:center; gap:6px;}
+  .brand-title{ font-family:'Amiri', serif; font-weight:700; font-size:clamp(42px, 14vw, 64px); color:var(--brass-light); text-shadow: 0 2px 0 rgba(0,0,0,.5), 0 0 24px rgba(200,155,60,.25); letter-spacing:2px; margin:0; }
+  .brand-tag{ font-size:14px; color:var(--text-muted); margin:0 0 28px; font-weight:600; }
+  .menu-btns{display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px;}
+  .plaque-btn{ font-family:'Cairo', sans-serif; font-weight:700; font-size:17px; color:var(--text-light); background: linear-gradient(180deg, var(--wood-light), var(--wood)); border:1px solid var(--brass-dark); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -3px 6px rgba(0,0,0,.35), 0 3px 6px rgba(0,0,0,.4); border-radius:4px; padding:15px 18px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; }
+  .plaque-btn:active{transform:translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 3px rgba(0,0,0,.35);}
+  .plaque-btn.primary{ background: linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border-color:#6e5218; }
+  .plaque-btn .ic{font-size:19px;}
+  .subpage-head{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .back-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:38px; height:38px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .subpage-title{ font-family:'Amiri', serif; font-size:26px; color:var(--brass-light); margin:0; }
+  .content-block{ background:rgba(0,0,0,.18); border:1px solid rgba(200,155,60,.25); border-radius:6px; padding:16px 16px; margin-bottom:14px; line-height:2; font-size:15px; color:var(--text-light); }
+  .content-block h3{margin:0 0 8px; color:var(--brass-light); font-size:16px;}
+  .content-block p{margin:0 0 8px;}
+  .content-block ul{margin:0; padding-inline-start:20px;}
+  .content-block li{margin-bottom:6px;}
+  .signature-box{ margin-top:auto; text-align:center; padding-top:20px; }
+  .signature-box .line{ width:60px; height:2px; background:var(--brass-dark); margin:0 auto 12px; }
+  .signature-box .made{font-size:13px; color:var(--text-muted); margin:0 0 4px;}
+  .signature-box .name{ font-family:'Amiri', serif; font-size:22px; color:var(--brass-light); margin:0; }
+  .signature-box .ver{font-size:12px; color:var(--text-muted); margin-top:10px;}
+  .setting-group{margin-bottom:22px;}
+  .setting-label{font-size:14px; color:var(--text-muted); margin-bottom:10px; font-weight:700;}
+  .choice-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .choice-btn{ flex:1; min-width:78px; background:rgba(0,0,0,.2); border:1px solid var(--brass-dark); color:var(--text-light); padding:12px 8px; border-radius:5px; font-family:'Cairo'; font-size:14px; font-weight:700; cursor:pointer; }
+  .choice-btn.sel{ background: linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border-color:#6e5218; }
+  
+  #screen-game{padding:max(2px, env(safe-area-inset-top)) 0 0;}
+  .game-content{display:flex; flex-direction:column; flex:1; min-height:0; height:100%;}
+  .status-bar{ display:flex; align-items:center; justify-content:space-between; padding:1px 6px; font-size:9px; line-height:1; color:var(--text-muted); border-bottom:1px solid rgba(200,155,60,.2); flex: 0 0 auto; }
+  .status-bar .who{display:flex; align-items:center; gap:3px; font-weight:700; color:var(--text-light);}
+  .status-bar .badge{ background:rgba(0,0,0,.3); border:1px solid var(--brass-dark); border-radius:4px; padding:1px 4px; font-size:8px; line-height:1.3; }
+  .turn-pill{ padding:2px 6px; border-radius:20px; font-size:8px; font-weight:800; line-height:1.3; }
+  .turn-pill.player{background:var(--olive); color:#eafbe9;}
+  .turn-pill.ai{background:var(--brick); color:#fbeae7;}
+  .opp-hand-area{ flex:0 0 auto; padding:1px 6px; border-bottom:1px solid rgba(200,155,60,.2); background:rgba(0,0,0,.12); line-height:0; }
+  .opp-hand-row{ display:flex; flex-wrap:wrap; gap:2px; justify-content:center; max-height:18px; overflow:hidden; }
+  .tile-back{ width:12px; height:18px; border-radius:2px; flex-shrink:0; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 1px 2px rgba(0,0,0,.35); position:relative; }
+  
+  .board-wrap{ flex:1 1 auto; min-height:0; position:relative; overflow:hidden; background: var(--table-wood-dark); border-top:1px solid rgba(0,0,0,.4); border-bottom:1px solid rgba(0,0,0,.4); }
+  .board-row{ position:absolute; inset:0; display:flex; flex-direction:row; align-items:stretch; }
+  .board-scroll{ position:relative; flex:1 1 auto; min-width:0; overflow:hidden; display:flex; justify-content:center; align-items:center; }
+  .board-track{ position:absolute; left:1px; top:1px; right:1px; bottom:1px; z-index:1; background: radial-gradient(circle at 50% 50%, var(--table-wood-light) 0%, var(--table-wood) 100%); border:2px solid #2a160c; border-radius:6px; box-shadow: inset 0 0 40px rgba(0,0,0,.6), 0 4px 10px rgba(0,0,0,.3); transition:width .2s ease, height .2s ease; overflow:hidden; }
+  .board-scroll.drop-armed .board-track{ box-shadow: inset 0 0 40px rgba(0,0,0,.6), 0 0 0 3px var(--brass-light), 0 0 18px rgba(228,200,120,.55); }
+  
+  .msg-overlay{ position:absolute; top:8px; left:50%; transform:translateX(-50%); background:rgba(20,12,6,.9); border:1px solid var(--brass-dark); color:var(--text-light); padding:4px 12px; border-radius:20px; font-size:10px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .25s ease; white-space:nowrap; z-index:5; }
+  .msg-overlay.show{opacity:1;}
+  
+  .boneyard-pile{ position:relative; flex:0 0 24px; width:24px; margin:2px; z-index:6; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .pile-stack{ position:relative; transition:filter .3s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; width:19px; flex:1; min-height:0; overflow-y:auto; overflow-x:visible; }
+  .pile-stack .tile-back{ width:19px; height:12px; margin-top:0; flex-shrink:0; border-radius:2px; }
+  .pile-stack .tile-back + .tile-back{ margin-top:-1px; }
+  .tile-back.dimmed-tile { opacity: 0.3; pointer-events: none; }
+  .boneyard-pile.drawable{ cursor:pointer; }
+  .boneyard-pile.drawable .pile-stack{ animation:pilePulse 1.1s ease-in-out infinite; }
+  @keyframes pilePulse{ 0%,100%{ filter:drop-shadow(0 0 0 rgba(228,200,120,0)); } 50%{ filter:drop-shadow(0 0 5px rgba(228,200,120,.85)); } }
+  @keyframes pileGrab{ 0%{transform:scale(1);} 45%{transform:scale(.82) translateY(4px);} 100%{transform:scale(1);} }
+  .pile-stack.grabbed{ animation:pileGrab .28s ease; }
+  .pile-label{ font-size:7px; font-weight:700; color:var(--text-muted); background:rgba(0,0,0,.35); border-radius:8px; padding:1px 4px; white-space:nowrap; flex-shrink:0; }
+  .boneyard-pile.drawable .pile-label{ color:#2a1b06; background:linear-gradient(180deg, var(--brass-light), var(--brass-dark)); }
+  .tile-back.draw-end{ box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 1px 2px rgba(0,0,0,.35), 0 0 0 2px var(--brass-light), 0 0 6px rgba(228,200,120,.8); animation:pilePulse 1.1s ease-in-out infinite; position:relative; z-index:2; }
+  .draw-undo-btn{ margin-top:2px; font-size:8px; font-weight:800; color:#2a1b06; background:linear-gradient(180deg, var(--brass-light), var(--brass-dark)); border:1px solid #6e5218; border-radius:8px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
+  
+  /* تصغير كروت الأرض */
+  .domino{ display:flex; position:absolute; direction:ltr; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; border-radius:4px; box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 -3px 5px rgba(0,0,0,.1) inset; flex-shrink:0; transition:left .28s ease, top .28s ease; }
+  .domino .half{ width:29px; height:29px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:2px; gap:1px; position:relative; transition: background-color 0.3s, box-shadow 0.3s; border-radius: 3px; }
+  .domino .half + .half{border-inline-start:none;}
+  .domino.stacked{flex-direction:column;}
+  .domino.stacked .half + .half{border-inline-start:none; border-top:none;}
+  
+  .domino .half.h-light-player {
+    box-shadow: inset 0 0 6px rgba(76, 122, 82, 0.5);
+    background-color: rgba(76, 122, 82, 0.08);
+  }
+  .domino .half.h-light-ai {
+    box-shadow: inset 0 0 6px rgba(156, 59, 46, 0.5);
+    background-color: rgba(156, 59, 46, 0.08);
+  }
+  
+  .domino::before{ content:''; position:absolute; z-index:1; top:8%; bottom:8%; left:50%; width:2px; margin-left:-1px; border-radius:2px; background:linear-gradient(90deg, #362c1f 0%, #0c0a07 50%, #362c1f 100%); box-shadow:0 0 1px rgba(0,0,0,.6); pointer-events:none; }
+  .domino.stacked::before{ left:8%; right:8%; top:50%; bottom:auto; width:auto; height:2px; margin-left:0; margin-top:-1px; border-radius:2px; background:linear-gradient(180deg, #362c1f 0%, #0c0a07 50%, #362c1f 100%); }
+  .domino::after, .hand-tile::after{ content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:4px; height:4px; border-radius:50%; z-index:2; background:radial-gradient(circle at 35% 30%, #fff6d8 0%, #d9b54c 55%, #8a6a1c 100%); box-shadow:0 1px 1px rgba(0,0,0,.55), inset 0 0 1px rgba(255,255,255,.8); pointer-events:none; }
+  @keyframes tilePop{ 0%{transform:scale(.25); opacity:0;} 70%{transform:scale(1.12); opacity:1;} 100%{transform:scale(1);} }
+  @keyframes tileShake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-5px);} 40%{transform:translateX(5px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} }
+  .hand-tile.shake{ animation:tileShake .4s ease; }
+  .new-tile{animation:tilePop .32s ease-out;}
+  .dot{ border-radius:50%; width:100%; height:100%; align-self:center; justify-self:center; transform:scale(.7); visibility:hidden; background:radial-gradient(circle at 32% 28%, #6b6a63 0%, #221f19 55%, #0b0a08 100%); box-shadow:0 1px 0 rgba(255,255,255,.18) inset, 0 -1px 1px rgba(0,0,0,.5) inset; }
+  .dot.on{visibility:visible;}
+  .fly-ghost{ position:fixed; z-index:80; pointer-events:none; border-radius:4px; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; box-shadow:0 8px 14px rgba(0,0,0,.55); will-change:transform; }
+  .fly-ghost::after{ content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:5px; height:5px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6d8 0%, #d9b54c 55%, #8a6a1c 100%); }
+  
+  .hand-area{ flex:0 0 auto; padding:1px 8px max(4px, env(safe-area-inset-bottom)); border-top:1px solid rgba(200,155,60,.25); background:rgba(0,0,0,.2); }
+  .hand-label{font-size:9px; color:var(--text-muted); margin-bottom:0; font-weight:700;}
+  .hand-hint{font-size:8px; color:var(--brass-light); margin-bottom:1px; opacity:.85;}
+  .hand-row{ display:flex; flex-wrap:nowrap; gap:4px; direction:ltr; justify-content:safe center; align-items:flex-start; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+  .draw-undo-row{ text-align:center; margin-top:2px; }
+  
+  /* تصغير كروت الإيد */
+  .hand-tile{ display:flex; flex-direction:column; position:relative; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; border-radius:4px; box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 -3px 5px rgba(0,0,0,.1) inset, 0 3px 6px rgba(0,0,0,.5); flex-shrink:0; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, opacity .15s ease, filter .15s ease; opacity:.45; filter:grayscale(65%); pointer-events:auto; }
+  .hand-tile.playable{ opacity:1; filter:none; pointer-events:auto; cursor:grab; touch-action:none; box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 -3px 5px rgba(0,0,0,.1) inset, 0 3px 6px rgba(0,0,0,.5), 0 0 0 2px var(--brass-light), 0 0 9px rgba(228,200,120,.55); }
+  .hand-tile.playable:active{transform:translateY(-4px);}
+  .hand-tile.selected{ transform:translateY(-8px); box-shadow:0 6px 10px rgba(0,0,0,.5), 0 0 0 2px var(--brick-light); }
+  .hand-tile .half{ width:32px; height:32px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:4px; gap:1px; }
+  .hand-tile .half + .half{border-top:none;}
+  .hand-tile::before{ content:''; position:absolute; z-index:1; left:8%; right:8%; top:50%; height:2px; margin-top:-1px; border-radius:2px; background:linear-gradient(180deg, #362c1f 0%, #0c0a07 50%, #362c1f 100%); pointer-events:none; }
+  .hand-tile.dragging-source{ opacity:.25; }
+  .drag-clone{ background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; border-radius:4px; box-shadow:0 10px 22px rgba(0,0,0,.55), 0 0 0 2px var(--brass-light); }
+  .side-picker{ position:absolute; bottom:4px; left:0; right:0; display:flex; direction:ltr; justify-content:center; gap:10px; z-index:8; }
+  .side-btn{ background:linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border:1px solid #6e5218; border-radius:20px; padding:6px 14px; font-weight:800; font-size:11px; cursor:pointer; }
+  .icon-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:18px; height:18px; border-radius:50%; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .result-card{ margin:auto; max-width:360px; width:100%; background:linear-gradient(160deg, rgba(92,58,33,.44), rgba(42,24,16,.45)); border:2px solid var(--brass-dark); border-radius:8px; padding:28px 22px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.5); backdrop-filter:blur(3px); }
+  .result-overlay{ position:absolute; inset:0; z-index:50; display:none; padding:24px 12px; background:rgba(10,6,3,.45); backdrop-filter:blur(1px); }
+  .result-overlay.active{ display:flex; }
+  .reveal-hands{ margin:14px 0 4px; text-align:right; }
+  .reveal-row{ margin-bottom:8px; }
+  .reveal-row .who-label{ font-size:12px; color:var(--text-muted); margin-bottom:4px; }
+  .reveal-tiles{ display:flex; flex-wrap:wrap; gap:3px; justify-content:center; }
+  .reveal-tiles .mini-domino{ display:flex; flex-direction:column; position:relative; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; border-radius:4px; box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 -3px 5px rgba(0,0,0,.1) inset; }
+  .reveal-tiles .mini-domino .half{ width:18px; height:18px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:2px; gap:1px; }
+  .reveal-tiles .mini-domino .half + .half{ border-top:1px solid #c9b98f; }
+  .reveal-tiles .mini-domino::before{ content:''; position:absolute; left:8%; right:8%; top:50%; height:2px; margin-top:-1px; border-radius:2px; background:linear-gradient(90deg, #362c1f 0%, #0c0a07 50%, #362c1f 100%); box-shadow:0 0 1px rgba(0,0,0,.6); }
+  .reveal-tiles .mini-domino::after{ content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:4px; height:4px; border-radius:50%; z-index:2; background:radial-gradient(circle at 35% 30%, #fff6d8 0%, #d9b54c 55%, #8a6a1c 100%); box-shadow:0 1px 1px rgba(0,0,0,.55), inset 0 0 1px rgba(255,255,255,.8); }
+  .result-card h2{ font-family:'Amiri', serif; font-size:28px; margin:0 0 6px; color:var(--brass-light); }
+  .result-card .sub{font-size:14px; color:var(--text-muted); margin:0 0 18px;}
+  .score-line{display:flex; justify-content:space-between; padding:8px 4px; font-size:15px; border-top:1px solid rgba(200,155,60,.2);}
+  .score-line b{color:var(--text-light);}
+  .result-actions{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+  ::-webkit-scrollbar{height:4px; width:4px;}
+  ::-webkit-scrollbar-thumb{background:var(--brass-dark); border-radius:3px;}
+  @media (prefers-reduced-motion: reduce){ .plaque-btn:active, .hand-tile.playable:active{transform:none;} }
+  
+  .draft-area { position: absolute; inset: 0; z-index: 5; }
+  .scattered-tile {
+    position: absolute;
+    width: 24px; height: 40px;
+    background: linear-gradient(155deg, #5C3A21 0%, #2A1810 100%);
+    border: 1px solid #4a2f1c; border-radius: 4px;
+    cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+    transition: left 1s cubic-bezier(.5,1.5,.5,1), top 1s cubic-bezier(.5,1.5,.5,1), transform 1s cubic-bezier(.5,1.5,.5,1), opacity 0.3s;
+    z-index: 6;
+  }
+  .scattered-tile.settled { transition: left 0.2s, top 0.2s, transform 0.2s, opacity 0.3s; }
+  .scattered-tile:hover {
+    transform: translate(-50%, -50%) rotate(0deg) scale(1.15) !important;
+    z-index: 10; opacity: 0.9;
+  }
+  .scattered-tile.picked { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0) !important; }
+  .scattered-tile.disabled { pointer-events: none; opacity: 0.6; }
+  .draft-overlay { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: var(--brass-light); padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; z-index: 20; text-align: center; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="screen active" id="screen-menu">
+    <div class="frame">
+      <a href="../../index.html" style="position:absolute; top:max(10px, env(safe-area-inset-top)); inset-inline-start:10px; color:var(--brass-light); text-decoration:none; font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px; opacity:.85; z-index:3;">↩ كل الألعاب</a>
+      <h1 class="brand-title">دومينو</h1>
+      <p class="brand-tag">لعبة الأهالي على طاولة الأحجار</p>
+      <div class="menu-btns">
+        <button class="plaque-btn primary" id="resumeBtn" style="display:none;" onclick="Nav.resumeMatch()"><span class="ic">⟳</span> استكمال الفورة السابقة</button>
+        <button class="plaque-btn" onclick="Nav.newMatchFromMenu()"><span class="ic">▶</span> لعبة جديدة</button>
+        <button class="plaque-btn" onclick="Nav.go('settings')"><span class="ic">⚙</span> الإعدادات</button>
+        <button class="plaque-btn" onclick="Nav.go('rules')"><span class="ic">؟</span> طريقة اللعب</button>
+        <button class="plaque-btn" onclick="Nav.go('about')"><span class="ic">ℹ</span> عن اللعبة</button>
+      </div>
+    </div>
+  </div>
+  <div class="screen" id="screen-settings">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">الإعدادات</h2>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">مستوى الخصم</div>
+        <div class="choice-row" id="diffRow">
+          <button class="choice-btn" data-val="easy" onclick="Settings.setDiff('easy')">سهل</button>
+          <button class="choice-btn" data-val="medium" onclick="Settings.setDiff('medium')">متوسط</button>
+          <button class="choice-btn" data-val="hard" onclick="Settings.setDiff('hard')">صعب</button>
+          <button class="choice-btn" data-val="pro" onclick="Settings.setDiff('pro')">محترف</button>
+          <button class="choice-btn" data-val="master" onclick="Settings.setDiff('master')">ماستر</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">نقاط الفوز بالمباراة</div>
+        <div class="choice-row" id="scoreRow">
+          <button class="choice-btn" data-val="61">61</button>
+          <button class="choice-btn" data-val="101">101</button>
+          <button class="choice-btn" data-val="151">151</button>
+          <button class="choice-btn" data-val="1">جولة واحدة</button>
+        </div>
+      </div>
+      <div class="content-block" style="font-size:13px; color:var(--text-muted);">
+        يتم تطبيق هذه الإعدادات على أي مباراة جديدة تبدأها من القائمة الرئيسية.
+      </div>
+    </div>
+  </div>
+  <div class="screen" id="screen-rules">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">طريقة اللعب</h2>
+      </div>
+      <div class="content-block"><h3>التسييق وبداية اللعب</h3><p>تبدأ اللعبة بنظام "التسييق"، حيث تطير الكروت وتلخبط في الهواء ثم تستقر على الطاولة. تختار أنت 7 قطع واحدة تلو الأخرى، وبعد كل اختيار يسحب الكمبيوتر قطعة. الباقي يذهب للحوض. يبدأ اللعب صاحب الـ "دبل" الأعلى (مثل 6/6)، وينزلها بنفسه.</p></div>
+      <div class="content-block"><h3>سير اللعب والسحب من الحوض</h3><ul><li>كل لاعب يضيف قطعة تطابق أحد طرفي السلسلة.</li><li>إذا لم تجد قطعة، تسحب من الحوض. في أول سحبة لك، تختار السحب من فوق أو تحت. وبعدها ستلتزم بالسحب من نفس الجهة طوال الجولة.</li><li>إذا تعذّر السحب (الحوض فارغ)، يمرر الدور.</li></ul></div>
+      <div class="content-block"><h3>القفلة (نهاية الجولة)</h3><ul><li>الفوز الفوري: أول من ينهي قطعه يفوز بمجموع نقاط القطع المتبقية بيد خصمه.</li><li>الغلق (القفلة): إذا مكنش أي طرف يقدر يلعب ونفد الحوض، تنتهي الجولة فوراً (بدون سحب كل الكروت)، ويفوز صاحب أقل مجموع نقاط بيده بالفارق.</li></ul></div>
+    </div>
+  </div>
+  <div class="screen" id="screen-about">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">عن اللعبة</h2>
+      </div>
+      <div class="content-block"><p>«دومينو» لعبة أحجار كلاسيكية بروح طاولة المقهى المصري، تُلعب بينك وبين الكمبيوتر بكل قواعد اللعبة التقليدية: التسييق، السحب، الدبل، والغلق.</p></div>
+      <div class="signature-box"><div class="line"></div><p class="made">برمجة وتصميم</p><p class="name">محمود جابر</p><p class="ver">الإصدار 1.0</p></div>
+    </div>
+  </div>
+  <div class="screen" id="screen-game">
+    <div class="game-content">
+      <div class="status-bar">
+        <button class="icon-btn" onclick="Nav.openGameMenu()">☰</button>
+        <div class="who">الخصم <span class="badge" id="aiCount">7</span></div>
+        <div class="turn-pill" id="turnPill">دورك</div>
+        <div class="who">
+          <span class="badge" id="scoreBadge" title="نقط الجيم">الجيم: 0 - 0</span>
+          <span class="badge" id="matchBadge" title="نتيجة الفورة">الفورة: 0 - 0</span>
+        </div>
+      </div>
+      <div class="opp-hand-area"><div class="opp-hand-row" id="oppHandRow"></div></div>
+      <div class="board-wrap">
+        <div class="msg-overlay" id="msgOverlay"></div>
+        <div class="board-row">
+          <div class="boneyard-pile" id="boneyardPile" onclick="Game.drawFromPile()">
+            <div class="pile-stack" id="pileStack"></div>
+            <div class="pile-label">الحوض <span id="boneCountPile">14</span></div>
+          </div>
+          <div class="board-scroll" id="boardScroll"><div class="board-track" id="boardTrack"></div></div>
+        </div>
+        <div class="side-picker" id="sidePicker" style="display:none;">
+          <button class="side-btn" onclick="Game.confirmSide('left')">ضع يسار السلسلة</button>
+          <button class="side-btn" onclick="Game.confirmSide('right')">ضع يمين السلسلة</button>
+        </div>
+      </div>
+      <div class="hand-area">
+        <div class="hand-label">يدك — <span id="handCount">7</span> قطع، والحوض <span id="boneCount">14</span></div>
+        <div class="hand-hint" id="handHint">اضغط على قطعة مضيئة لتلعبها</div>
+        <div class="hand-row" id="handRow"></div>
+      </div>
+      <div class="result-overlay" id="resultOverlay"><div class="result-card" id="resultCard"></div></div>
+      <div class="result-overlay" id="gameMenuOverlay">
+        <div class="result-card" id="gameMenuCard"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="result-overlay" id="globalConfirmOverlay" style="position:fixed;"><div class="result-card" id="globalConfirmCard"></div></div>
+
+<script>
+const state = {
+  screen:'menu', phase:'menu', draftPhase: 'idle', difficulty:'medium', targetScore:101,
+  playerHand:[], aiHand:[], boneyard:[], draftPool:[],
+  board:[], leftEnd:null, rightEnd:null,
+  turn:'player', scores:{player:0, ai:0},
+  selectedIdx:null, passesInRow:0, busy:false, drawMode:false,
+  roundNumber:0, lastRoundWinner:null, pileDrawFrom:null, lastDraw:null, anchorIndex:0,
+  lastPlayedIdx: -1, lastPlayedBy: null, draftTurn: 'player', lastSide: null, lastPlayedOpenSide: null,
+  gameWins:{player:0, ai:0}, decisiveGame:false, pendingResult:null
+};
+
+const Nav = {
+  go(name){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+name).classList.add('active'); state.screen = name; state.pendingResult = null; document.getElementById('resultOverlay').classList.remove('active'); document.getElementById('gameMenuOverlay').classList.remove('active'); document.getElementById('globalConfirmOverlay').classList.remove('active'); },
+  closeResult(){ state.pendingResult = null; document.getElementById('resultOverlay').classList.remove('active'); },
+  newMatch(){
+    state.scores.player = 0; state.scores.ai = 0;
+    state.roundNumber = 0; state.lastRoundWinner = null; state.pileDrawFrom = null;
+    state.gameWins = {player:0, ai:0}; state.decisiveGame = false;
+    Nav.closeResult();
+    Game.startDraft(); 
+  },
+  resumeMatch(){
+    const saved = loadGame();
+    if(!saved) return;
+    Nav.go('game');
+    Object.assign(state, saved);
+    Render.hand(); Render.status(); Render.oppHand(!!state.pendingResult); Render.pile();
+    if(state.phase==='draft'){ Render.draft(); } else { Render.board(); }
+    if(state.pendingResult){
+      document.getElementById('resultCard').innerHTML = state.pendingResult;
+      document.getElementById('resultOverlay').classList.add('active');
+    }
+  },
+  confirmExit(){ Nav.go('menu'); },
+  openGameMenu(){
+    document.getElementById('gameMenuCard').innerHTML = `
+      <h2 style="margin-bottom:16px;">القائمة</h2>
+      <div class="result-actions">
+        <button class="plaque-btn primary" onclick="Nav.closeGameMenu()">استمر</button>
+        <button class="plaque-btn" onclick="Nav.askConfirm('newMatch')">ابدأ فورة جديدة</button>
+        <button class="plaque-btn" onclick="Nav.askConfirm('exit')">الخروج للقائمة الرئيسية</button>
+      </div>`;
+    document.getElementById('gameMenuOverlay').classList.add('active');
+  },
+  closeGameMenu(){ document.getElementById('gameMenuOverlay').classList.remove('active'); },
+  askConfirm(action){
+    const msg = action==='newMatch' ? 'هتبدأ فورة جديدة من الصفر بدل الفورة الحالية، متأكد؟' : 'هل تريد الخروج للقائمة الرئيسية؟ تقدر تكمل الفورة الحالية بعدين من زرار "استكمال الفورة السابقة".';
+    document.getElementById('gameMenuCard').innerHTML = `
+      <h2 style="margin-bottom:10px;">تأكيد</h2>
+      <p class="sub">${msg}</p>
+      <div class="result-actions">
+        <button class="plaque-btn primary" onclick="Nav.doConfirmedAction('${action}')">تأكيد</button>
+        <button class="plaque-btn" onclick="Nav.openGameMenu()">رجوع</button>
+      </div>`;
+  },
+  doConfirmedAction(action){
+    Nav.closeGameMenu();
+    if(action==='newMatch'){ Nav.newMatch(); }
+    else if(action==='exit'){ Nav.go('menu'); }
+  },
+  newMatchFromMenu(){
+    const saved = loadGame();
+    if(saved && (saved.phase==='game' || saved.phase==='draft')){
+      document.getElementById('globalConfirmCard').innerHTML = `
+        <h2 style="margin-bottom:10px;">تأكيد</h2>
+        <p class="sub">عندك فورة سابقة شغالة ومتسيفة، لو بدأت لعبة جديدة هتفقدها. متأكد؟</p>
+        <div class="result-actions">
+          <button class="plaque-btn primary" onclick="Nav.closeGlobalConfirm(); Nav.newMatch();">تأكيد، ابدأ لعبة جديدة</button>
+          <button class="plaque-btn" onclick="Nav.closeGlobalConfirm();">رجوع</button>
+        </div>`;
+      document.getElementById('globalConfirmOverlay').classList.add('active');
+    } else {
+      Nav.newMatch();
+    }
+  },
+  closeGlobalConfirm(){ document.getElementById('globalConfirmOverlay').classList.remove('active'); }
+};
+
+function saveGame(){
+  try{
+    if(state.phase==='game' || state.phase==='draft'){ localStorage.setItem('domino13_save', JSON.stringify(state)); }
+  }catch(e){}
+}
+function loadGame(){
+  try{ const raw = localStorage.getItem('domino13_save'); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function clearSave(){ try{ localStorage.removeItem('domino13_save'); }catch(e){} }
+(function initResumeButton(){
+  const saved = loadGame();
+  const btn = document.getElementById('resumeBtn');
+  if(saved && (saved.phase==='game' || saved.phase==='draft')){
+    btn.style.display = 'flex';
+  }
+})();
+
+const Settings = {
+  setDiff(v){ state.difficulty = v; document.querySelectorAll('#diffRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===v)); },
+  setScore(v){ state.targetScore = v; document.querySelectorAll('#scoreRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===String(v))); }
+};
+document.querySelectorAll('#scoreRow .choice-btn').forEach(b=>{ b.addEventListener('click', ()=>Settings.setScore(parseInt(b.dataset.val,10))); });
+Settings.setDiff('medium'); Settings.setScore(101);
+
+function createDeck(){ const d=[]; for(let a=0;a<=6;a++) for(let b=a;b<=6;b++) d.push({a,b}); return d; }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function scatterDraftPositions(n){
+  // توزيع عشوائي حر لكل قطعة (مش شبكة منظمة) — بيحاول يبعد كل قطعة
+  // جديدة عن اللي قبلها، ولو مش لاقي مكان كويس بعد كذا محاولة ياخد
+  // أحسن مكان لقاه بدل ما يعلّق.
+  const pts = [];
+  const minDist = 13;
+  for(let i=0;i<n;i++){
+    let best=null, bestScore=-1;
+    for(let attempt=0; attempt<40; attempt++){
+      const x = 8 + Math.random()*84;
+      const y = 10 + Math.random()*78;
+      if(pts.length===0){ best={x,y}; break; }
+      let minD = Infinity;
+      for(const p of pts){ const d=Math.hypot(p.x-x,p.y-y); if(d<minD) minD=d; }
+      if(minD>=minDist){ best={x,y}; break; }
+      if(minD>bestScore){ bestScore=minD; best={x,y}; }
+    }
+    pts.push(best);
+  }
+  return pts;
+}
+function pipSum(hand){ return hand.reduce((s,t)=>s+t.a+t.b,0); }
+function countValueOnBoard(v){ return state.board.reduce((n,t)=> n + (t.a===v?1:0) + (t.b===v?1:0), 0); }
+// كل رقم (0-6) موجود بالظبط في 8 قطع من أصل 28. اللي مش معروف للخصم (يعني مش في الأرض ولا في إيد الـ AI) يبقى إما في إيد اللاعب أو في الحوض
+function unseenCountForValue(v){
+  let seen = countValueOnBoard(v);
+  state.aiHand.forEach(t=>{ if(t.a===v) seen++; if(t.b===v) seen++; });
+  return 8 - seen;
+}
+function isDeadEnd(){
+  // في طقم الدومينو (0-6)، كل رقم يظهر على 8 قطع بالظبط. لو الطرفين
+  // بنفس الرقم وكل الـ8 قطع بتاعته اتلعبت بالفعل، يبقى مفيش أي قطعة
+  // (سواء في الإيدين أو الحوض) تقدر تكمل اللعب، فالجولة مقفولة فورًا.
+  return state.board.length>0 && state.leftEnd===state.rightEnd && countValueOnBoard(state.leftEnd)===8;
+}
+function highestDouble(hand){ let best=null; hand.forEach(t=>{ if(t.a===t.b && (!best || t.a>best.a)) best=t; }); return best; }
+function highestTile(hand){ let best=null; hand.forEach(t=>{ const sum=t.a+t.b; if(!best || sum>best.sum) best={...t, sum}; }); return best; }
+
+const Game = {
+  startDraft() {
+    state.phase = 'draft';
+    state.draftPhase = 'shuffle';
+    state.playerHand = [];
+    state.aiHand = [];
+    state.boneyard = [];
+    state.busy = false;
+    state.selectedIdx = null;
+    state.draftTurn = 'player';
+    state.draftPool = shuffle(createDeck());
+    state.draftPool.forEach(t => {
+      t.x = 50; t.y = -20; t.rot = 0;
+      t.picked = false;
+    });
+    Nav.go('game');
+    Render.draft();
+    Render.hand();
+    Render.status();
+    Render.oppHand();
+    
+    let shufflesLeft = 4;
+    const shuffleInterval = setInterval(() => {
+      shufflesLeft--;
+      // توزيع عشوائي بالكامل (مش شبكة) — كل قطعة بتاخد مكان وزاوية عشوائية
+      // تمامًا، مع محاولة إبعادها عن القطع التانية عشان متقعش فوق بعض.
+      const pts = scatterDraftPositions(state.draftPool.length);
+      state.draftPool.forEach((t, i) => {
+        t.x = pts[i].x;
+        t.y = pts[i].y;
+        t.rot = Math.random() * 360 - 180;
+      });
+      Render.draft();
+      if (shufflesLeft <= 0) {
+        clearInterval(shuffleInterval);
+        setTimeout(() => {
+          state.draftPhase = 'pick';
+          Render.draft();
+        }, 1000);
+      }
+    }, 1000);
+  },
+  pickDraftTile(idx) {
+    if (state.draftPhase !== 'pick' || state.draftTurn !== 'player' || state.playerHand.length >= 7 || state.busy) return;
+    state.busy = true;
+    const tile = state.draftPool[idx];
+    if (!tile || tile.picked) { state.busy = false; return; }
+    
+    const el = document.querySelector(`[data-draft-idx="${idx}"]`);
+    if (el) {
+      const handRect = document.getElementById('handRow').getBoundingClientRect();
+      el.style.transition = 'all 0.4s ease-in';
+      el.style.left = (handRect.left + handRect.width / 2) + 'px';
+      el.style.top = (handRect.top + 10) + 'px';
+      el.style.transform = 'translate(-50%, -50%) rotate(0deg) scale(0.8)';
+      el.style.opacity = '0';
+    }
+    
+    tile.picked = true;
+    state.playerHand.push({ a: tile.a, b: tile.b });
+    state.draftTurn = 'ai'; 
+    
+    setTimeout(() => {
+      state.busy = false;
+      Render.draft();
+      Render.hand();
+      if (state.playerHand.length === 7 && state.aiHand.length === 7) {
+        Game.finishDraft();
+      } else {
+        setTimeout(Game.aiPickDraft, 300);
+      }
+    }, 400);
+  },
+  aiPickDraft() {
+    if (state.aiHand.length >= 7) { Game.finishDraft(); return; }
+    const available = state.draftPool.filter(t => !t.picked);
+    if (available.length > 0) {
+      const pick = available[Math.floor(Math.random() * available.length)];
+      pick.picked = true;
+      state.aiHand.push({ a: pick.a, b: pick.b });
+    }
+    state.draftTurn = 'player'; 
+    Render.draft();
+    if (state.playerHand.length === 7 && state.aiHand.length === 7) {
+      Game.finishDraft();
+    }
+  },
+  finishDraft() {
+    state.boneyard = state.draftPool.filter(t => !t.picked).map(t => ({ a: t.a, b: t.b }));
+    state.draftPool = [];
+    state.phase = 'game';
+    state.draftPhase = 'idle';
+
+    // فحص التوزيعة: أكتر من 3 بفات عند حد، أو (في أول جولة في فورة جديدة)
+    // محدش معاه ولا بف خالص - في الحالتين التوزيعة باظت ولازم تتعاد من الأول.
+    const pDoubles = state.playerHand.filter(t=>t.a===t.b).length;
+    const aDoubles = state.aiHand.filter(t=>t.a===t.b).length;
+    const isFirstHandOfMatch = (state.roundNumber===0);
+    const noDoubleAtAll = isFirstHandOfMatch && pDoubles===0 && aDoubles===0;
+    if(pDoubles>3 || aDoubles>3 || noDoubleAtAll){
+      Toast.show(noDoubleAtAll ? 'محدش معاه بف، هنعيد التسقية' : 'توزيعة فيها بفات كتير أوي، هنعيد التسقية');
+      setTimeout(Game.startDraft, 1200);
+      return;
+    }
+    Round.startAfterDraft();
+  },
+  selectTile(idx){
+    if(state.turn!=='player' || state.busy || state.phase!=='game') return;
+    const moves = getValidMoves(state.playerHand);
+    const mv = moves.find(m=>m.idx===idx);
+    if(!mv) return;
+    if(state.selectedIdx===idx){ state.selectedIdx=null; Render.hand(); Render.sidePicker(null); return; }
+    state.selectedIdx = idx; Render.hand();
+    if(mv.sides.length===1 || mv.sides[0]==='any'){ const side = mv.sides[0]==='any' ? 'first' : mv.sides[0]; Game.play(idx, side); }
+    else { Render.sidePicker(mv.sides); }
+  },
+  confirmSide(side){
+    if(state.turn!=='player' || state.busy || state.selectedIdx===null) return;
+    const moves = getValidMoves(state.playerHand);
+    const mv = moves.find(m=>m.idx===state.selectedIdx);
+    if(!mv || !mv.sides.includes(side)) {
+        Toast.show("هذه القطعة لا تطابق هذا الطرف!");
+        state.selectedIdx = null; Render.hand(); Render.sidePicker(null); return;
+    }
+    Game.play(state.selectedIdx, side);
+  },
+  play(idx, side){
+    if(state.busy) return;
+    state.busy = true;
+    
+    state.lastDraw = null;
+    const tile = state.playerHand[idx];
+    const fromEl = document.querySelector(`[data-hand-idx="${idx}"]`);
+    const fromRect = fromEl ? fromEl.getBoundingClientRect() : null;
+    
+    const targetSide = side; 
+    Board.place(tile, side);
+    state.playerHand.splice(idx,1);
+    state.selectedIdx=null; state.passesInRow=0; state.drawMode=false;
+    state.lastPlayedBy = 'player';
+    Render.sidePicker(null); Render.all();
+    if(navigator.vibrate) navigator.vibrate(15);
+    
+    if(fromRect){
+      const targetIdx = targetSide==='left' ? 0 : state.board.length-1;
+      const toEl = document.querySelector(`[data-board-idx="${targetIdx}"]`);
+      if(toEl) flyGhost(fromRect, toEl.getBoundingClientRect());
+    }
+    
+    if(state.playerHand.length===0){ Round.end('player','out'); return; }
+    if(isDeadEnd()){ Round.end(null,'blocked'); return; }
+    state.turn='ai'; Render.all(); Toast.show('دور الخصم'); 
+    setTimeout(AI.takeTurn, 800);
+  },
+  drawFromPile(side){
+    if(!state.drawMode || state.turn!=='player' || state.boneyard.length===0 || state.busy) return;
+
+    // نقرة عامة على الحوض (مش على الطرف بالظبط) — لو الجهة متحددة بالفعل
+    // اسحب منها تلقائي، ولو لسه معندناش جهة، افتراضي "تحت".
+    if(!side) side = state.pileDrawFrom || 'bottom';
+
+    state.busy = true;
+
+    // إصلاح سحب آخر كارت في الحوض
+    if (state.boneyard.length === 1 && state.pileDrawFrom && side !== state.pileDrawFrom) {
+      side = state.pileDrawFrom;
+    }
+
+    if (state.pileDrawFrom && side !== state.pileDrawFrom) {
+      Toast.show('يجب السحب من نفس الجهة التي اخترتها أولاً!');
+      state.busy = false;
+      return;
+    }
+    
+    if (!state.pileDrawFrom) state.pileDrawFrom = side;
+    
+    const tile = side === 'top' ? state.boneyard.shift() : state.boneyard.pop();
+    state.playerHand.push(tile);
+    if(navigator.vibrate) navigator.vibrate(10);
+
+    const moves = getValidMoves(state.playerHand);
+    if(moves.length>0){
+      state.drawMode = false;
+      state.busy = false; // فك القفل قبل الرندر
+      Render.pulsePile(); Render.all();
+      const newHandEl = document.querySelector(`[data-hand-idx="${state.playerHand.length-1}"]`);
+      if(newHandEl) newHandEl.classList.add('new-tile');
+      Toast.show('سحبت قطعة صالحة، العبها');
+    } else if(state.boneyard.length > 0) {
+      state.busy = false; // فك القفل قبل الرندر
+      Render.pulsePile(); Render.all();
+      const newHandEl = document.querySelector(`[data-hand-idx="${state.playerHand.length-1}"]`);
+      if(newHandEl) newHandEl.classList.add('new-tile');
+      Toast.show('قطعة غير صالحة، اسحب مرة اخرى من نفس الجهة');
+    } else {
+      state.passesInRow++;
+      state.busy = false;
+      Render.all();
+      Toast.show('لا توجد حركة، تم تمرير دورك');
+      if(state.passesInRow>=2){ Round.end(null,'blocked'); return; }
+      state.turn='ai'; Render.status(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 800);
+    }
+  }
+};
+
+const Round = {
+  startAfterDraft() {
+    state.roundNumber++;
+    state.board = []; state.leftEnd=null; state.rightEnd=null;
+    state.selectedIdx=null; state.passesInRow=0; state.busy=false; state.lastSide=null; state.drawMode=false;
+    state.pileDrawFrom=null; state.lastDraw=null; state.anchorIndex=0; state.lastPlayedIdx=-1; state.lastPlayedOpenSide=null;
+
+    let starter;
+    if(state.roundNumber===1){
+      const pd = highestDouble(state.playerHand);
+      const ad = highestDouble(state.aiHand);
+      // finishDraft() ضمنلنا إن حد فيهم لازم يكون معاه بف قبل ما نوصل هنا
+      starter = (pd && (!ad || pd.a>ad.a)) ? 'player' : 'ai';
+    } else {
+      starter = state.lastRoundWinner;
+    }
+    
+    state.turn = starter;
+
+    if(state.turn==='ai'){ Render.all(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 1000); }
+    else { Render.all(); Toast.show('دورك ابدأ اللعب'); checkPlayerTurnStart(); }
+  },
+  end(winner, reason){
+    state.busy = false; // متضمنش القفل بعد ما الجولة تخلص، عشان التسقية الجديدة تشتغل
+    const pPips = pipSum(state.playerHand);
+    const aPips = pipSum(state.aiHand);
+    let points=0, title='', sub='';
+    if(reason==='out'){
+      points = winner==='player' ? aPips : pPips;
+      if(winner==='player'){ state.scores.player += points; title='فزت بالجولة! 🎉'; sub='أنهيت كل قطعك أولاً'; }
+      else { state.scores.ai += points; title='خسرت الجولة'; sub='الخصم أنهى قطعه أولاً'; }
+    } else {
+      const pCount = state.playerHand.length, aCount = state.aiHand.length;
+      if(pCount<aCount){ winner='player'; points=aPips; state.scores.player+=points; title='فزت بالغلق! 🎉'; sub='معاك قطع أقل عند القفل'; }
+      else if(aCount<pCount){ winner='ai'; points=pPips; state.scores.ai+=points; title='خسرت بالغلق'; sub='معاه قطع أقل عند القفل'; }
+      else if(pPips<aPips){ winner='player'; points=aPips; state.scores.player+=points; title='فزت بالغلق! 🎉'; sub='نفس عدد القطع، بس نقطك أقل'; }
+      else if(aPips<pPips){ winner='ai'; points=pPips; state.scores.ai+=points; title='خسرت بالغلق'; sub='نفس عدد القطع، بس نقطه أقل'; }
+      else { winner='draw'; title='تعادل!'; sub='تساوى العدد والنقط في القفل'; }
+    }
+    if(winner!=='draw'){ state.lastRoundWinner = winner; } // في حالة التعادل، الكسبان اللي فات يفضل هو اللي يبدأ
+    const gameOver = state.scores.player>=state.targetScore || state.scores.ai>=state.targetScore;
+    const card = document.getElementById('resultCard');
+    let matchLine='', gameLine='', matchTrulyOver=false;
+    if(gameOver){
+      const gameWinner = state.scores.player > state.scores.ai ? 'player' : 'ai';
+      const wasDecisive = state.decisiveGame;
+      state.gameWins[gameWinner]++;
+      if(wasDecisive){
+        matchTrulyOver = true;
+        const mw = gameWinner==='player' ? 'أنت' : 'الخصم';
+        matchLine = `<h2 style="margin-top:18px;">${mw==='أنت' ? 'مبروك، فزت بالفاصل والمباراة! 🏆' : 'خسرت الفاصل، خسرت المباراة'}</h2>
+          <p class="sub">الجيمات النهائية: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}</p>`;
+        clearSave();
+      } else {
+        state.decisiveGame = (state.gameWins.player === state.gameWins.ai);
+        state.scores.player = 0; state.scores.ai = 0;
+        gameLine = `<h2 style="margin-top:14px;">${gameWinner==='player' ? 'فزت بالجيم! 🎯' : 'خسرت الجيم'}</h2>
+          <p class="sub">الجيمات: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}${state.decisiveGame ? ' — الجيم الجاي هو الفاصل! ⚡' : ''}</p>`;
+      }
+    }
+    // نكشف إيد الاتنين بعد نهاية الجولة عشان الحساب يبقى على المكشوف بالكامل
+    const revealTiles = hand => hand.map(t=>`<div class="mini-domino"><div class="half">${pipsHTML(t.a)}</div><div class="half">${pipsHTML(t.b)}</div></div>`).join('');
+    const revealHTML = `
+      <div class="reveal-hands">
+        <div class="reveal-row">
+          <div class="who-label">ورقك (${pPips} نقطة)</div>
+          <div class="reveal-tiles">${revealTiles(state.playerHand)}</div>
+        </div>
+        <div class="reveal-row">
+          <div class="who-label">ورق الخصم (${aPips} نقطة)</div>
+          <div class="reveal-tiles">${revealTiles(state.aiHand)}</div>
+        </div>
+      </div>`;
+    card.innerHTML = `
+      <h2>${title}</h2>
+      <p class="sub">${sub}${points?` — ${points} نقطة`:''}</p>
+      <div class="score-line"><span>أنت</span><b>${state.scores.player}</b></div>
+      <div class="score-line"><span>الخصم</span><b>${state.scores.ai}</b></div>
+      ${revealHTML}
+      ${gameLine}
+      ${matchLine}
+      <div class="result-actions">
+        ${matchTrulyOver
+          ? `<button class="plaque-btn primary" onclick="Nav.newMatch()">مباراة جديدة</button><button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`
+          : `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startDraft()">${gameOver ? 'الجيم التالي (تسقي)' : 'الجولة التالية (تسقي)'}</button><button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`
+        }
+      </div>`;
+    Render.oppHand(true);
+    state.pendingResult = card.innerHTML;
+    document.getElementById('resultOverlay').classList.add('active');
+    if(!matchTrulyOver){ saveGame(); }
+  }
+};
+
+const Board = {
+  place(tile, side){
+    state.lastSide = side;
+    if(state.board.length===0 || side==='first'){
+      state.board.push({a:tile.a, b:tile.b, double:tile.a===tile.b});
+      state.leftEnd = tile.a; state.rightEnd = tile.b;
+      state.anchorIndex = 0; state.lastPlayedIdx = 0;
+      state.lastPlayedOpenSide = 'both'; 
+      return;
+    }
+    if(side==='left'){
+      const matchVal = state.leftEnd;
+      const otherVal = (tile.a===matchVal) ? tile.b : tile.a;
+      state.board.unshift({a:otherVal, b:matchVal, double:tile.a===tile.b});
+      state.leftEnd = otherVal; state.anchorIndex++;
+      state.lastPlayedIdx = 0;
+      state.lastPlayedOpenSide = (tile.a === tile.b) ? 'both' : 'a'; 
+    } else {
+      const matchVal = state.rightEnd;
+      const otherVal = (tile.a===matchVal) ? tile.b : tile.a;
+      state.board.push({a:matchVal, b:otherVal, double:tile.a===tile.b});
+      state.rightEnd = otherVal;
+      state.lastPlayedIdx = state.board.length - 1;
+      state.lastPlayedOpenSide = (tile.a === tile.b) ? 'both' : 'b'; 
+    }
+  },
+  validSidesFor(tile){
+    if(state.board.length===0) return ['any'];
+    const sides=[];
+    if(tile.a===state.leftEnd || tile.b===state.leftEnd) sides.push('left');
+    if(tile.a===state.rightEnd || tile.b===state.rightEnd) sides.push('right');
+    return sides;
+  }
+};
+function getValidMoves(hand){
+  const moves=[];
+  hand.forEach((t,i)=>{ const sides = Board.validSidesFor(t); if(sides.length) moves.push({idx:i, sides, tile:t}); });
+  return moves;
+}
+
+function checkPlayerTurnStart(){
+  state.busy = false; // فك القفل للاعب
+  state.selectedIdx=null; Render.sidePicker(null);
+  const moves = getValidMoves(state.playerHand);
+  if(moves.length>0){ state.drawMode=false; Render.all(); return; }
+  if(state.boneyard.length>0){
+    state.drawMode=true; Render.all(); 
+    if (state.pileDrawFrom) Toast.show(`لا نقلة متاحة — اسحب من ${state.pileDrawFrom === 'top' ? 'فوق' : 'تحت'}`);
+    else Toast.show('لا نقلة متاحة — اختر السحب من فوق أو تحت');
+  } else {
+    state.drawMode=false; state.passesInRow++; Render.all();
+    Toast.show('لا توجد حركة، تم تمرير دورك');
+    if(state.passesInRow>=2){ Round.end(null,'blocked'); return; }
+    state.turn='ai'; Render.status(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 800);
+  }
+}
+
+const Drag = {
+  session:null,
+  attach(el, idx){ el.addEventListener('pointerdown', (e)=>Drag.onDown(e, el, idx)); },
+  onDown(e, el, idx){
+    if(state.turn!=='player' || state.busy || state.phase!=='game') return;
+    const moves = getValidMoves(state.playerHand);
+    const mv = moves.find(m=>m.idx===idx);
+    if(!mv) return;
+    e.preventDefault();
+    const rect = el.getBoundingClientRect();
+    Drag.session = { idx, mv, el, clone:null, dragging:false, startX:e.clientX, startY:e.clientY, rectW:rect.width, rectH:rect.height, rectL:rect.left, rectT:rect.top };
+    const move = (ev)=>Drag.onMove(ev);
+    const up = (ev)=>{ Drag.onUpp(ev); document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); };
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  },
+  onMove(e){
+    const s = Drag.session; if(!s) return;
+    const dx = e.clientX-s.startX, dy = e.clientY-s.startY;
+    if(!s.dragging && Math.hypot(dx,dy) > 8){
+      s.dragging = true; s.el.classList.add('dragging-source');
+      const clone = document.createElement('div');
+      clone.className = s.el.className.replace('dragging-source','') + ' drag-clone';
+      clone.innerHTML = s.el.innerHTML;
+      Object.assign(clone.style, { position:'fixed', left:s.rectL+'px', top:s.rectT+'px', width:s.rectW+'px', height:s.rectH+'px', zIndex:999, pointerEvents:'none', transform:'scale(1.1) rotate(-3deg)', opacity:'1' });
+      document.body.appendChild(clone);
+      s.clone = clone;
+      document.getElementById('boardScroll').classList.add('drop-armed');
+    }
+    if(s.dragging && s.clone){ s.clone.style.left = (s.rectL+dx)+'px'; s.clone.style.top = (s.rectT+dy)+'px'; }
+  },
+  onUpp(e){
+    const s = Drag.session; Drag.session = null; if(!s) return;
+    s.el.classList.remove('dragging-source');
+    document.getElementById('boardScroll').classList.remove('drop-armed');
+    if(s.clone) s.clone.remove();
+    if(!s.dragging){ Game.selectTile(s.idx); return; }
+    const scroll = document.getElementById('boardScroll');
+    const r = scroll.getBoundingClientRect();
+    const droppedOnBoard = e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
+    if(!droppedOnBoard) return;
+    const mv = s.mv;
+    if(mv.sides.length===1){ Game.play(s.idx, mv.sides[0]==='any' ? 'first' : mv.sides[0]); return; }
+    const firstEl = document.querySelector('[data-board-idx="0"]');
+    const lastEl = document.querySelector(`[data-board-idx="${state.board.length-1}"]`);
+    if(firstEl && lastEl){
+      const fr = firstEl.getBoundingClientRect(), lr = lastEl.getBoundingClientRect();
+      const dLeft = Math.hypot(e.clientX-(fr.left+fr.width/2), e.clientY-(fr.top+fr.height/2));
+      const dRight = Math.hypot(e.clientX-(lr.left+lr.width/2), e.clientY-(lr.top+lr.height/2));
+      let chosenSide = dLeft<=dRight ? 'left' : 'right';
+      if(!mv.sides.includes(chosenSide)) chosenSide = mv.sides[0];
+      Game.play(s.idx, chosenSide);
+    } else { Game.play(s.idx, mv.sides[0]); }
+  }
+};
+
+const AI = {
+  takeTurn(){
+    if(state.screen!=='game' || state.phase!=='game') return;
+    let moves = getValidMoves(state.aiHand);
+    if (moves.length > 0) {
+      AI.finishTurn();
+    } else if (state.boneyard.length > 0) {
+      Toast.show('الخصم يسحب من الحوض');
+      setTimeout(() => {
+        let drawSide = state.pileDrawFrom;
+        if (!drawSide) {
+          drawSide = Math.random() > 0.5 ? 'top' : 'bottom';
+          state.pileDrawFrom = drawSide;
+        }
+        const tile = drawSide === 'top' ? state.boneyard.shift() : state.boneyard.pop();
+        state.aiHand.push(tile);
+        Render.pulsePile(); Render.all();
+        if (row = document.getElementById('oppHandRow')) { if(row.lastElementChild) row.lastElementChild.classList.add('new-tile'); }
+        AI.takeTurn(); 
+      }, 700);
+    } else {
+      AI.finishTurn();
+    }
+  },
+  // بيقيم كل حركة ممكنة ويرجع أفضل جهة للعب بيها + درجة الحركة، حسب مستوى الصعوبة
+  evaluateMove(move, level){
+    const tile = move.tile;
+    const isDouble = tile.a===tile.b;
+    const base = tile.a + tile.b + (isDouble ? 3 : 0);
+    // نلاقي لكل جهة ممكنة (يمين/شمال/الأول) القيمة اللي هتفضل مكشوفة بعد اللعب، ونحسب ندرتها
+    let bestSide = move.sides[0], bestScarcity = -Infinity, bestOpenVal = null, bestOtherEnd = null;
+    move.sides.forEach(side=>{
+      let openVal, otherEnd;
+      if(side==='any' || side==='first'){
+        openVal = isDouble ? tile.a : Math.max(tile.a, tile.b);
+        otherEnd = null;
+      } else {
+        const matchVal = side==='left' ? state.leftEnd : state.rightEnd;
+        openVal = (tile.a===matchVal) ? tile.b : tile.a;
+        otherEnd = side==='left' ? state.rightEnd : state.leftEnd;
+      }
+      const scarcity = 8 - unseenCountForValue(openVal); // كل ما زادت = كل ما بقت القيمة دي نادرة عند الخصم = تحكم أكتر
+      if(scarcity > bestScarcity){ bestScarcity = scarcity; bestSide = side; bestOpenVal = openVal; bestOtherEnd = otherEnd; }
+    });
+    let score = base;
+    if(level==='hard'){
+      score += bestScarcity * 1.0;
+    } else if(level==='pro'){
+      score += bestScarcity * 1.8;
+      if(bestOtherEnd!==null && bestOtherEnd!==undefined){ score += (8 - unseenCountForValue(bestOtherEnd)) * 0.6; }
+    } else if(level==='master'){
+      score += bestScarcity * 2.4;
+      if(bestOtherEnd!==null && bestOtherEnd!==undefined){ score += (8 - unseenCountForValue(bestOtherEnd)) * 1.2; }
+      // يفضّل يحافظ على تنوع القطع المتبقية في إيده عشان ميقفلش على نفسه بعدين
+      const remaining = state.aiHand.filter((_,i)=> i!==move.idx);
+      const distinct = new Set();
+      remaining.forEach(t=>{ distinct.add(t.a); distinct.add(t.b); });
+      score += distinct.size * 0.5;
+      // بيأجل لعب الدبل شوية إلا لو فعلاً بيتحكم في رقم نادر (يخزنها للحصار بعدين)
+      if(isDouble && bestScarcity < 6) score -= 2;
+    }
+    return { score, side: bestSide };
+  },
+  finishTurn(){
+    const moves = getValidMoves(state.aiHand);
+    if(moves.length===0){
+      state.passesInRow++; Toast.show('الخصم لا يملك حركة، تم التمرير'); Render.all();
+      if(state.passesInRow>=2){ Round.end(null,'blocked'); return; }
+      state.turn='player'; checkPlayerTurnStart(); return;
+    }
+    state.passesInRow = 0;
+    let chosen, side;
+    if(state.difficulty==='easy'){
+      chosen = moves[Math.floor(Math.random()*moves.length)];
+      side = chosen.sides[Math.floor(Math.random()*chosen.sides.length)];
+    } else if(state.difficulty==='medium'){
+      moves.sort((a,b)=>{ const scoreA = a.tile.a+a.tile.b + (a.tile.a===a.tile.b?3:0); const scoreB = b.tile.a+b.tile.b + (b.tile.a===b.tile.b?3:0); return scoreB-scoreA; });
+      chosen = moves[0];
+      side = chosen.sides[Math.floor(Math.random()*chosen.sides.length)];
+    } else {
+      // hard / pro / master: كل واحد بيستخدم نفس دالة التقييم بس بوزن أعلى للتحكم والاستراتيجية
+      let bestMove=null, bestScore=-Infinity, bestSide=null;
+      moves.forEach(m=>{
+        const res = AI.evaluateMove(m, state.difficulty);
+        if(res.score > bestScore){ bestScore = res.score; bestMove = m; bestSide = res.side; }
+      });
+      chosen = bestMove; side = bestSide;
+    }
+    side = side==='any' ? 'first' : side;
+    const fromEl = document.getElementById('oppHandRow').lastElementChild;
+    const fromRect = fromEl ? fromEl.getBoundingClientRect() : null;
+    
+    const targetSide = side; 
+    Board.place(chosen.tile, side);
+    state.aiHand.splice(chosen.idx,1);
+    state.lastPlayedBy = 'ai';
+    Render.all();
+    
+    if(fromRect){
+      const targetIdx = targetSide==='left' ? 0 : state.board.length-1;
+      const toEl = document.querySelector(`[data-board-idx="${targetIdx}"]`);
+      if(toEl) flyGhost(fromRect, toEl.getBoundingClientRect());
+    }
+    
+    if(state.aiHand.length===0){ Round.end('ai','out'); return; }
+    if(isDeadEnd()){ Round.end(null,'blocked'); return; }
+    state.turn='player'; checkPlayerTurnStart();
+  }
+};
+
+const Toast = { timer:null, show(text){ const el = document.getElementById('msgOverlay'); el.textContent = text; el.classList.add('show'); clearTimeout(Toast.timer); Toast.timer = setTimeout(()=>el.classList.remove('show'), 1500); } };
+
+function flyGhost(fromRect, toRect){
+  if(!fromRect || !toRect) return;
+  const ghost = document.createElement('div');
+  ghost.className = 'fly-ghost';
+  ghost.style.width = fromRect.width+'px'; ghost.style.height = fromRect.height+'px';
+  ghost.style.left = fromRect.left+'px'; ghost.style.top = fromRect.top+'px';
+  document.body.appendChild(ghost);
+  const dx = (toRect.left + toRect.width/2) - (fromRect.left + fromRect.width/2);
+  const dy = (toRect.top + toRect.height/2) - (fromRect.top + fromRect.height/2);
+  const scale = ((toRect.width/fromRect.width) + (toRect.height/fromRect.height)) / 2;
+  requestAnimationFrame(()=>{ ghost.style.transition = 'transform .38s cubic-bezier(.22,.75,.28,1), opacity .38s ease'; ghost.style.transform = `translate(${dx}px, ${dy}px) rotate(8deg) scale(${scale})`; ghost.style.opacity = '0.85'; });
+  setTimeout(()=> ghost.remove(), 420);
+}
+
+/* خوارزمية المسار مع تصغير المقاسات (48x24) */
+const LEN_LONG = 58, LEN_SHORT = 29;
+const TILE_OVERLAP = -1; // لمسة بسيطة (-1px) بين كل قطعتين متجاورتين في نفس الصف
+const CORNER_OVERLAP = -1; // لمسة القطعة اللي بتلف الاتجاه عند الزاوية
+function walkChain(tiles, startDirX, containerW, containerH, startCx, startCy, startTile, isLeftSide) {
+  const placements = [];
+  let dir = startDirX > 0 ? 0 : 2; 
+  
+  let laneCenter = dir % 2 === 0 ? startCy : startCx;
+  let flowPos;
+  
+  if (dir === 0) flowPos = startCx + (startTile.double ? LEN_SHORT/2 : LEN_LONG/2) - TILE_OVERLAP;
+  else if (dir === 2) flowPos = startCx - (startTile.double ? LEN_SHORT/2 : LEN_LONG/2) + TILE_OVERLAP;
+  else if (dir === 1) flowPos = startCy + (startTile.double ? LEN_SHORT/2 : LEN_LONG/2) - TILE_OVERLAP;
+  else if (dir === 3) flowPos = startCy - (startTile.double ? LEN_SHORT/2 : LEN_LONG/2) + TILE_OVERLAP;
+
+  // cross-dimension of the anchor tile in the starting direction — used as the
+  // "previous tile" reference if the very first tile in this chain has to turn.
+  let lastCrossDim = (dir === 0 || dir === 2)
+    ? (startTile.double ? LEN_LONG : LEN_SHORT)
+    : (startTile.double ? LEN_SHORT : LEN_LONG);
+
+  for (let i = 0; i < tiles.length; i++) {
+    const t = tiles[i];
+    const isDouble = t.double;
+    let w, h, stacked, boxX, boxY;
+
+    function setDims() {
+      if (dir === 0 || dir === 2) {
+        if (isDouble) { w = LEN_SHORT; h = LEN_LONG; stacked = true; } else { w = LEN_LONG; h = LEN_SHORT; stacked = false; }
+      } else {
+        if (isDouble) { w = LEN_LONG; h = LEN_SHORT; stacked = false; } else { w = LEN_SHORT; h = LEN_LONG; stacked = true; }
+      }
+    }
+
+    setDims();
+
+    if (dir === 0) { boxX = flowPos; boxY = laneCenter - h/2; }
+    else if (dir === 1) { boxY = flowPos; boxX = laneCenter - w/2; }
+    else if (dir === 2) { boxX = flowPos - w; boxY = laneCenter - h/2; }
+    else if (dir === 3) { boxY = flowPos - h; boxX = laneCenter - w/2; }
+
+    let guard = 0;
+    while (guard < 6) {
+      let oob = false;
+      if (dir === 0 && boxX + w > containerW) oob = true;
+      else if (dir === 1 && boxY + h > containerH) oob = true;
+      else if (dir === 2 && boxX < 0) oob = true;
+      else if (dir === 3 && boxY < 0) oob = true;
+
+      if (!oob) break;
+
+      guard++;
+      let prevFlowPos = flowPos;
+      let prevLaneCenter = laneCenter;
+      let prevDir = dir;
+      
+      dir = (dir + 1) % 4; 
+      setDims();
+
+      // Corner turn: the turning tile sits perfectly FLUSH with the outer
+      // edge of the previous row/column (no gap, a full right angle on the
+      // outside), and is nudged inward along the flow axis by just a touch
+      // so it meets the previous tile's edge instead of overlapping and
+      // covering it — a real-domino corner join, not a stacked-on-top look.
+      const QUARTER_TILE = CORNER_OVERLAP;
+      const newCrossFull = (dir === 1 || dir === 3) ? w : h;
+      const oldCrossFull = lastCrossDim;
+
+      if (prevDir === 0) { laneCenter = prevFlowPos - newCrossFull/2; flowPos = prevLaneCenter + oldCrossFull/2 - QUARTER_TILE; } 
+      else if (prevDir === 1) { laneCenter = prevFlowPos - newCrossFull/2; flowPos = prevLaneCenter - oldCrossFull/2 + QUARTER_TILE; } 
+      else if (prevDir === 2) { laneCenter = prevFlowPos + newCrossFull/2; flowPos = prevLaneCenter - oldCrossFull/2 + QUARTER_TILE; } 
+      else if (prevDir === 3) { laneCenter = prevFlowPos + newCrossFull/2; flowPos = prevLaneCenter + oldCrossFull/2 - QUARTER_TILE; }
+
+      if (dir === 0) { boxX = flowPos; boxY = laneCenter - h/2; }
+      else if (dir === 1) { boxY = flowPos; boxX = laneCenter - w/2; }
+      else if (dir === 2) { boxX = flowPos - w; boxY = laneCenter - h/2; }
+      else if (dir === 3) { boxY = flowPos - h; boxX = laneCenter - w/2; }
+    }
+
+    // منمنعش القطعة تتقطع من الحيطة في اتجاه العرض (خصوصًا البفايات اللي
+    // بتاخد مساحة عرضية أكبر جوه صف عادي) - نلزق حافتها بحافة الأرض
+    // بدل ما نسيبها تتخبى، من غير ما نلمس حساب الزاوية بتاع اتجاه التدفق.
+    if (dir === 0 || dir === 2) {
+      boxY = Math.max(0, Math.min(boxY, containerH - h));
+    } else {
+      boxX = Math.max(0, Math.min(boxX, containerW - w));
+    }
+
+    placements.push({ x: Math.round(boxX), y: Math.round(boxY), stacked, dir, isLeftSide });
+
+    // remember this tile's own cross-dimension for the NEXT tile, in case it
+    // needs to turn against this one.
+    lastCrossDim = (dir === 0 || dir === 2) ? h : w;
+
+    if (dir === 0) flowPos += w - TILE_OVERLAP;
+    else if (dir === 1) flowPos += h - TILE_OVERLAP;
+    else if (dir === 2) flowPos -= (w - TILE_OVERLAP);
+    else if (dir === 3) flowPos -= (h - TILE_OVERLAP);
+  }
+  return placements;
+}
+
+
+function pipsHTML(n){
+  const active = {0:[],1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,4,7,3,6,9]}[n] || [];
+  let html='';
+  for(let p=1;p<=9;p++){ html += `<span class="dot ${active.includes(p)?'on':''}"></span>`; }
+  return html;
+}
+
+const Render = {
+  all(){ Render.hand(); Render.status(); Render.oppHand(); Render.pile(); Render.board(); saveGame(); },
+  draft() {
+    const track = document.getElementById('boardTrack');
+    const scroll = document.getElementById('boardScroll');
+    const pileEl = document.getElementById('boneyardPile');
+    pileEl.style.visibility = 'hidden';
+    document.getElementById('sidePicker').style.display = 'none';
+    const containerW = Math.max(140, scroll.clientWidth - 8);
+    const containerH = Math.max(140, scroll.clientHeight - 8);
+    track.style.width = containerW + 'px';
+    track.style.height = containerH + 'px';
+    
+    let overlayText = state.draftPhase === 'shuffle' ? 'جاري لخبطة الكروت...' : `اختر ${7 - state.playerHand.length} قطع ليدك`;
+    let html = `<div class="draft-overlay">${overlayText}</div>`;
+    html += '<div class="draft-area">';
+    state.draftPool.forEach((t, i) => {
+      if (!t.picked) {
+        const disabledCls = state.draftTurn === 'ai' ? 'disabled' : '';
+        const settledCls = state.draftPhase === 'pick' ? 'settled' : '';
+        html += `<div class="scattered-tile ${disabledCls} ${settledCls}" data-draft-idx="${i}" style="left:${t.x}%; top:${t.y}%; transform: translate(-50%, -50%) rotate(${t.rot}deg);" onclick="Game.pickDraftTile(${i})"></div>`;
+      }
+    });
+    html += '</div>';
+    track.innerHTML = html;
+    saveGame();
+  },
+  status(){
+    document.getElementById('aiCount').textContent = state.aiHand.length;
+    document.getElementById('handCount').textContent = state.playerHand.length;
+    document.getElementById('boneCount').textContent = state.boneyard.length;
+    document.getElementById('boneCountPile').textContent = state.boneyard.length;
+    const pile = document.getElementById('boneyardPile');
+    pile.style.visibility = state.phase==='game' && state.boneyard.length>0 ? 'visible' : 'hidden';
+    pile.classList.toggle('drawable', state.drawMode && state.turn==='player' && state.boneyard.length>0);
+    document.getElementById('scoreBadge').textContent = `الجيم: أنت ${state.scores.player} - خصم ${state.scores.ai}`;
+    document.getElementById('matchBadge').textContent = `الفورة: أنت ${state.gameWins.player} - خصم ${state.gameWins.ai}`;
+    const pill = document.getElementById('turnPill');
+    pill.textContent = state.turn==='player' ? 'دورك' : 'دور الخصم';
+    pill.className = 'turn-pill ' + state.turn;
+    const hint = document.getElementById('handHint');
+    if(state.phase==='draft') hint.textContent = 'مرحلة التسقي: اختر قطعك من على الطاولة';
+    else if(state.turn!=='player') hint.textContent = 'في انتظار دور الخصم...';
+    else if(state.drawMode) hint.textContent = state.pileDrawFrom ? `اسحب من ${state.pileDrawFrom === 'top' ? 'فوق' : 'تحت'}` : 'اختر السحب من فوق أو تحت';
+    else hint.textContent = 'اضغط على قطعة مضيئة لتلعبها';
+  },
+  board(){
+    const track = document.getElementById('boardTrack');
+    const scroll = document.getElementById('boardScroll');
+    const containerW = Math.max(140, scroll.clientWidth - 8);
+    const containerH = Math.max(140, scroll.clientHeight - 8);
+    track.style.width = containerW + 'px';
+    track.style.height = containerH + 'px';
+
+    if(state.board.length===0){ track.innerHTML=''; return; }
+
+    const anchorIdx = Math.min(state.anchorIndex||0, state.board.length-1);
+    const anchorTile = state.board[anchorIdx];
+    const anchorStacked = !!anchorTile.double;
+    const anchorW = anchorStacked ? LEN_SHORT : LEN_LONG;
+    const anchorH = anchorStacked ? LEN_LONG : LEN_SHORT;
+
+    const centerX = containerW/2;
+    const centerY = containerH/2;
+    const anchorLeft = Math.round(centerX - anchorW/2);
+    const anchorTop = Math.round(centerY - anchorH/2);
+
+    const anchorCx = anchorLeft + anchorW/2;
+    const anchorCy = anchorTop + anchorH/2;
+
+    const rightTiles = state.board.slice(anchorIdx+1);
+    const leftTiles = state.board.slice(0, anchorIdx).slice().reverse();
+
+    const rightPlacements = walkChain(rightTiles, 1, containerW, containerH, anchorCx, anchorCy, anchorTile, false);
+    const leftPlacements = walkChain(leftTiles, -1, containerW, containerH, anchorCx, anchorCy, anchorTile, true);
+
+    const allPlacements = new Array(state.board.length);
+    allPlacements[anchorIdx] = {x:anchorLeft, y:anchorTop, stacked:anchorStacked, dir:0, isLeftSide:false};
+    rightTiles.forEach((t,i)=>{ allPlacements[anchorIdx+1+i] = rightPlacements[i]; });
+    leftTiles.forEach((t,i)=>{ allPlacements[anchorIdx-1-i] = leftPlacements[i]; });
+
+    track.innerHTML = state.board.map((t,i)=>{
+      const p = allPlacements[i];
+      let cls = 'domino' + (t.double?' double':'') + (p.stacked?' stacked':'');
+      
+      let val1 = t.a, val2 = t.b;
+      const isRightSide = !p.isLeftSide;
+      const isLeftSide = p.isLeftSide;
+      
+      if (isRightSide && (p.dir === 2 || p.dir === 3)) {
+        val1 = t.b; val2 = t.a;
+      } else if (isLeftSide && (p.dir === 0 || p.dir === 1)) {
+        val1 = t.b; val2 = t.a;
+      }
+      
+      let half1Cls = 'half';
+      let half2Cls = 'half';
+      
+      if (i === state.lastPlayedIdx && state.lastPlayedBy) {
+        const colorCls = state.lastPlayedBy === 'player' ? ' h-light-player' : ' h-light-ai';
+        if (state.lastPlayedOpenSide === 'a' || state.lastPlayedOpenSide === 'both') {
+          half1Cls += colorCls;
+        }
+        if (state.lastPlayedOpenSide === 'b' || state.lastPlayedOpenSide === 'both') {
+          half2Cls += colorCls;
+        }
+      }
+      
+      return `<div class="${cls}" data-board-idx="${i}" style="left:${p.x}px; top:${p.y}px;">
+        <div class="${half1Cls}">${pipsHTML(val1)}</div>
+        <div class="${half2Cls}">${pipsHTML(val2)}</div>
+      </div>`;
+    }).join('');
+
+    if(state.board.length && state.lastSide){
+      const targetIdx = state.lastSide==='left' ? 0 : state.board.length-1;
+      const newEl = track.querySelector(`[data-board-idx="${targetIdx}"]`);
+      if(newEl) newEl.classList.add('new-tile');
+      state.lastSide = null; 
+    }
+  },
+  hand(){
+    const moves = (state.turn==='player' && !state.drawMode && state.phase==='game' && !state.busy) ? getValidMoves(state.playerHand) : [];
+    const validIdx = new Set(moves.map(m=>m.idx));
+    const row = document.getElementById('handRow');
+    row.innerHTML = state.playerHand.map((t,i)=>{
+      const playable = validIdx.has(i);
+      const selected = state.selectedIdx===i;
+      return `<div class="hand-tile ${playable?'playable':''} ${selected?'selected':''}" data-hand-idx="${i}">
+        <div class="half">${pipsHTML(t.a)}</div>
+        <div class="half">${pipsHTML(t.b)}</div>
+      </div>`;
+    }).join('');
+    row.querySelectorAll('.hand-tile').forEach(el=>{
+      const idx = parseInt(el.dataset.handIdx,10);
+      if(el.classList.contains('playable')){
+        Drag.attach(el, idx);
+      } else {
+        el.addEventListener('click', ()=>{
+          if(state.turn!=='player' || state.busy || state.phase!=='game') return;
+          el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+          if(state.drawMode) Toast.show('لازم تسحب من الحوض الأول');
+          else Toast.show('هذه القطعة لا تطابق أي طرف من السلسلة حاليًا');
+        });
+      }
+    });
+  },
+  sidePicker(sides){
+    const el = document.getElementById('sidePicker');
+    if(!sides){ el.style.display='none'; return; }
+    el.style.display='flex';
+    el.children[0].style.display = sides.includes('left') ? 'inline-block':'none';
+    el.children[1].style.display = sides.includes('right') ? 'inline-block':'none';
+  },
+  oppHand(reveal){
+    const row = document.getElementById('oppHandRow');
+    if(reveal){
+      row.innerHTML = state.aiHand.map(t=>`<div class="hand-tile" style="opacity:1;filter:none;cursor:default;"><div class="half">${pipsHTML(t.a)}</div><div class="half">${pipsHTML(t.b)}</div></div>`).join('');
+    } else {
+      row.innerHTML = state.aiHand.map(()=>`<div class="tile-back"></div>`).join('');
+    }
+  },
+  pile(){
+    const stack = document.getElementById('pileStack');
+    const n = state.boneyard.length;
+    const canDraw = state.drawMode && state.turn==='player' && n>0 && !state.busy;
+    
+    stack.innerHTML = Array.from({length:n}).map((_, i)=>{
+      let cls = 'tile-back';
+      let attr = '';
+      
+      if (canDraw) {
+        const isTop = i === 0;
+        const isBottom = i === n - 1;
+        let canBeDrawn = false;
+        
+        if (!state.pileDrawFrom) {
+          if (isTop || isBottom) canBeDrawn = true;
+        } else {
+          if (state.pileDrawFrom === 'top' && isTop) canBeDrawn = true;
+          if (state.pileDrawFrom === 'bottom' && isBottom) canBeDrawn = true;
+        }
+        
+        if (canBeDrawn) {
+          cls += ' draw-end';
+          if (n === 1) attr = ` data-draw-side="${state.pileDrawFrom || 'top'}"`;
+          else attr = ` data-draw-side="${isTop?'top':'bottom'}"`;
+        } else {
+          cls += ' dimmed-tile';
+        }
+      }
+      return `<div class="${cls}"${attr}></div>`;
+    }).join('');
+    
+    if (canDraw) {
+      stack.querySelectorAll('[data-draw-side]').forEach(el => {
+        el.addEventListener('click', (e) => { e.stopPropagation(); Game.drawFromPile(el.dataset.drawSide); });
+      });
+    }
+  },
+  pulsePile(){ const el = document.querySelector('.pile-stack'); if(!el) return; el.classList.remove('grabbed'); void el.offsetWidth; el.classList.add('grabbed'); }
+};
+</script>
+</body>
+</html>
