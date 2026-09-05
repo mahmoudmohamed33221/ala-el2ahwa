@@ -1,5 +1,5 @@
 // service-worker.js — كاش بسيط لتشغيل المنصة والألعاب أوفلاين
-const CACHE_NAME = 'ala-el2ahwa-v2';
+const CACHE_NAME = 'ala-el2ahwa-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -27,8 +27,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// نجيب أحدث نسخة من الملفات الأول (network-first)، ونستخدم الكاش بس لو مفيش اتصال
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
