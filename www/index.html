@@ -33,14 +33,12 @@
 
   .games-grid{ width:100%; max-width:420px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .game-card{
-    position:relative; display:block; aspect-ratio:1/1; text-decoration:none; overflow:hidden;
-    border:1px solid var(--brass-dark); border-radius:18px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.4);
+    position:relative; display:block; aspect-ratio:1/1; text-decoration:none;
   }
   .game-card:active{ transform:translateY(1px); }
   .game-card .thumb{ position:absolute; inset:0; background-size:cover; background-position:center;
                       display:flex; align-items:center; justify-content:center; font-size:64px; }
-  .game-card .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .game-card .thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
   .game-card .caption{ position:absolute; left:0; right:0; bottom:0; padding:22px 8px 10px; text-align:center;
                         background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.78) 75%); }
   .game-card .name{ font-weight:800; font-size:16px; color:#fff; margin:0; text-shadow:0 1px 3px rgba(0,0,0,.7); }
