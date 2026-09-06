@@ -490,6 +490,7 @@ const Nav = {
 
 function saveGame(){
   try{
+    if(Net.active) return; // فورة شبكة - مفيش استكمال محلي، وحفظها هيتعارض مع فورة اللاعب الفردي
     if(state.phase==='game' || state.phase==='draft'){ localStorage.setItem('domino13_save', JSON.stringify(state)); }
   }catch(e){}
 }
@@ -552,6 +553,11 @@ function isDeadEnd(){
 function highestDouble(hand){ let best=null; hand.forEach(t=>{ if(t.a===t.b && (!best || t.a>best.a)) best=t; }); return best; }
 function highestTile(hand){ let best=null; hand.forEach(t=>{ const sum=t.a+t.b; if(!best || sum>best.sum) best={...t, sum}; }); return best; }
 
+// بتاخد "المقعد" (player أو ai) وترجع إيده الفعلية في الـstate - دي هي اللي بتخلي نفس دوال
+// اللعب تشتغل سواء للاعب المحلي أو للمقعد التاني لما يبقى صاحب متصل عبر الشبكة بدل الـAI
+function handOf(seat){ return seat==='player' ? state.playerHand : state.aiHand; }
+function otherSeat(seat){ return seat==='player' ? 'ai' : 'player'; }
+
 const Game = {
   startDraft() {
     state.phase = 'draft';
@@ -590,36 +596,55 @@ const Game = {
         setTimeout(() => {
           state.draftPhase = 'pick';
           Render.draft();
+          if(Net.active) Net.hostSync(); // نبعت توزيعة القطع (نفس الأماكن والقيم) لصاحبك عشان يلاقي نفس اللي شايفه
         }, 1000);
       }
     }, 1000);
   },
-  pickDraftTile(idx) {
-    if (state.draftPhase !== 'pick' || state.draftTurn !== 'player' || state.playerHand.length >= 7 || state.busy) return;
+  pickDraftTile(idx, seat) {
+    seat = seat || 'player';
+    // لو أنا "الضيف" على الشبكة وده اختياري أنا (مقعد player عندي محليًا)، ابعت الاختيار للهوست
+    // بدل ما ألمس الـstate عندي مباشرة - الـstate بتاعي مجرد مرآة لحالة الهوست
+    if (Net.active && Net.role === 'guest' && seat === 'player') {
+      if (state.draftPhase !== 'pick' || state.draftTurn !== 'player' || state.playerHand.length >= 7 || state.busy) return;
+      const t = state.draftPool[idx];
+      if (!t || t.picked) return;
+      Net.sendAction('draftPick', { idx });
+      return;
+    }
+    if (state.draftPhase !== 'pick' || state.draftTurn !== seat || handOf(seat).length >= 7 || state.busy) return;
     state.busy = true;
     const tile = state.draftPool[idx];
     if (!tile || tile.picked) { state.busy = false; return; }
     
     const el = document.querySelector(`[data-draft-idx="${idx}"]`);
     if (el) {
-      const handRect = document.getElementById('handRow').getBoundingClientRect();
-      el.style.transition = 'all 0.4s ease-in';
-      el.style.left = (handRect.left + handRect.width / 2) + 'px';
-      el.style.top = (handRect.top + 10) + 'px';
-      el.style.transform = 'translate(-50%, -50%) rotate(0deg) scale(0.8)';
-      el.style.opacity = '0';
+      if (seat === 'player') {
+        const handRect = document.getElementById('handRow').getBoundingClientRect();
+        el.style.transition = 'all 0.4s ease-in';
+        el.style.left = (handRect.left + handRect.width / 2) + 'px';
+        el.style.top = (handRect.top + 10) + 'px';
+        el.style.transform = 'translate(-50%, -50%) rotate(0deg) scale(0.8)';
+        el.style.opacity = '0';
+      } else {
+        el.style.transition = 'opacity 0.3s ease-in';
+        el.style.opacity = '0';
+      }
     }
     
     tile.picked = true;
-    state.playerHand.push({ a: tile.a, b: tile.b });
-    state.draftTurn = 'ai'; 
+    handOf(seat).push({ a: tile.a, b: tile.b });
+    state.draftTurn = otherSeat(seat); 
     
     setTimeout(() => {
       state.busy = false;
       Render.draft();
       Render.hand();
+      Render.oppHand();
       if (state.playerHand.length === 7 && state.aiHand.length === 7) {
         Game.finishDraft();
+      } else if (Net.active) {
+        Net.hostSync(); // نفصّح للضيف/المتفرجين إن الدور اتغيّر - كل واحد هيلعب دوره من عنده
       } else {
         setTimeout(Game.aiPickDraft, 300);
       }
@@ -678,22 +703,30 @@ const Game = {
     }
     Game.play(state.selectedIdx, side);
   },
-  play(idx, side){
+  play(idx, side, seat){
+    seat = seat || 'player';
+    if (Net.active && Net.role === 'guest' && seat === 'player') {
+      if (state.busy) return;
+      Net.sendAction('play', { idx, side });
+      return;
+    }
     if(state.busy) return;
     state.busy = true;
     
     state.lastDraw = null;
-    const tile = state.playerHand[idx];
-    const fromEl = document.querySelector(`[data-hand-idx="${idx}"]`);
+    const hand = handOf(seat);
+    const tile = hand[idx];
+    const fromEl = seat==='player' ? document.querySelector(`[data-hand-idx="${idx}"]`) : document.getElementById('oppHandRow').lastElementChild;
     const fromRect = fromEl ? fromEl.getBoundingClientRect() : null;
     
     const targetSide = side; 
     Board.place(tile, side);
-    state.playerHand.splice(idx,1);
-    state.selectedIdx=null; state.passesInRow=0; state.drawMode=false;
-    state.lastPlayedBy = 'player';
+    hand.splice(idx,1);
+    if(seat==='player') state.selectedIdx=null;
+    state.passesInRow=0; state.drawMode=false;
+    state.lastPlayedBy = seat;
     Render.sidePicker(null); Render.all();
-    if(navigator.vibrate) navigator.vibrate(15);
+    if(seat==='player' && navigator.vibrate) navigator.vibrate(15);
     
     if(fromRect){
       const targetIdx = targetSide==='left' ? 0 : state.board.length-1;
@@ -701,13 +734,27 @@ const Game = {
       if(toEl) flyGhost(fromRect, toEl.getBoundingClientRect());
     }
     
-    if(state.playerHand.length===0){ Round.end('player','out'); return; }
+    if(hand.length===0){ Round.end(seat,'out'); return; }
     if(isDeadEnd()){ Round.end(null,'blocked'); return; }
-    state.turn='ai'; Render.all(); Toast.show('دور الخصم'); 
-    setTimeout(AI.takeTurn, 800);
+    const next = otherSeat(seat);
+    state.turn = next; Render.all();
+    if(Net.active){
+      Net.hostSync();
+      checkTurnStart(next);
+      Net.hostSync();
+    } else {
+      Toast.show('دور الخصم');
+      setTimeout(AI.takeTurn, 800);
+    }
   },
-  drawFromPile(side){
-    if(!state.drawMode || state.turn!=='player' || state.boneyard.length===0 || state.busy) return;
+  drawFromPile(side, seat){
+    seat = seat || 'player';
+    if (Net.active && Net.role === 'guest' && seat === 'player') {
+      if (!state.drawMode || state.turn!=='player' || state.boneyard.length===0 || state.busy) return;
+      Net.sendAction('draw', { side });
+      return;
+    }
+    if(!state.drawMode || state.turn!==seat || state.boneyard.length===0 || state.busy) return;
 
     // نقرة عامة على الحوض (مش على الطرف بالظبط) — لو الجهة متحددة بالفعل
     // اسحب منها تلقائي، ولو لسه معندناش جهة، افتراضي "تحت".
@@ -721,38 +768,48 @@ const Game = {
     }
 
     if (state.pileDrawFrom && side !== state.pileDrawFrom) {
-      Toast.show('يجب السحب من نفس الجهة التي اخترتها أولاً!');
+      if(seat==='player') Toast.show('يجب السحب من نفس الجهة التي اخترتها أولاً!');
       state.busy = false;
       return;
     }
     
     if (!state.pileDrawFrom) state.pileDrawFrom = side;
     
+    const hand = handOf(seat);
     const tile = side === 'top' ? state.boneyard.shift() : state.boneyard.pop();
-    state.playerHand.push(tile);
-    if(navigator.vibrate) navigator.vibrate(10);
+    hand.push(tile);
+    if(seat==='player' && navigator.vibrate) navigator.vibrate(10);
 
-    const moves = getValidMoves(state.playerHand);
+    const moves = getValidMoves(hand);
     if(moves.length>0){
       state.drawMode = false;
       state.busy = false; // فك القفل قبل الرندر
       Render.pulsePile(); Render.all();
-      const newHandEl = document.querySelector(`[data-hand-idx="${state.playerHand.length-1}"]`);
-      if(newHandEl) newHandEl.classList.add('new-tile');
-      Toast.show('سحبت قطعة صالحة، العبها');
+      if(seat==='player'){
+        const newHandEl = document.querySelector(`[data-hand-idx="${state.playerHand.length-1}"]`);
+        if(newHandEl) newHandEl.classList.add('new-tile');
+        Toast.show('سحبت قطعة صالحة، العبها');
+      }
+      if(Net.active) Net.hostSync();
     } else if(state.boneyard.length > 0) {
       state.busy = false; // فك القفل قبل الرندر
       Render.pulsePile(); Render.all();
-      const newHandEl = document.querySelector(`[data-hand-idx="${state.playerHand.length-1}"]`);
-      if(newHandEl) newHandEl.classList.add('new-tile');
-      Toast.show('قطعة غير صالحة، اسحب مرة اخرى من نفس الجهة');
+      if(seat==='player'){
+        const newHandEl = document.querySelector(`[data-hand-idx="${state.playerHand.length-1}"]`);
+        if(newHandEl) newHandEl.classList.add('new-tile');
+        Toast.show('قطعة غير صالحة، اسحب مرة اخرى من نفس الجهة');
+      }
+      if(Net.active) Net.hostSync();
     } else {
       state.passesInRow++;
       state.busy = false;
       Render.all();
-      Toast.show('لا توجد حركة، تم تمرير دورك');
+      if(seat==='player') Toast.show('لا توجد حركة، تم تمرير دورك');
       if(state.passesInRow>=2){ Round.end(null,'blocked'); return; }
-      state.turn='ai'; Render.status(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 800);
+      const next = otherSeat(seat);
+      state.turn=next; Render.status();
+      if(Net.active){ Net.hostSync(); checkTurnStart(next); Net.hostSync(); }
+      else { Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 800); }
     }
   }
 };
@@ -776,78 +833,54 @@ const Round = {
     
     state.turn = starter;
 
-    if(state.turn==='ai'){ Render.all(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 1000); }
+    if(Net.active){
+      Render.all();
+      checkTurnStart(starter);
+      Net.hostSync();
+    } else if(state.turn==='ai'){ Render.all(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 1000); }
     else { Render.all(); Toast.show('دورك ابدأ اللعب'); checkPlayerTurnStart(); }
   },
   end(winner, reason){
     state.busy = false; // متضمنش القفل بعد ما الجولة تخلص، عشان التسقية الجديدة تشتغل
     const pPips = pipSum(state.playerHand);
     const aPips = pipSum(state.aiHand);
-    let points=0, title='', sub='';
+    let points=0, reasonKey='';
     if(reason==='out'){
       points = winner==='player' ? aPips : pPips;
-      if(winner==='player'){ state.scores.player += points; title='فزت بالجولة! 🎉'; sub='أنهيت كل قطعك أولاً'; }
-      else { state.scores.ai += points; title='خسرت الجولة'; sub='الخصم أنهى قطعه أولاً'; }
+      if(winner==='player'){ state.scores.player += points; reasonKey='win-out'; }
+      else { state.scores.ai += points; reasonKey='lose-out'; }
     } else {
       const pCount = state.playerHand.length, aCount = state.aiHand.length;
-      if(pCount<aCount){ winner='player'; points=aPips; state.scores.player+=points; title='فزت بالغلق! 🎉'; sub='معاك قطع أقل عند القفل'; }
-      else if(aCount<pCount){ winner='ai'; points=pPips; state.scores.ai+=points; title='خسرت بالغلق'; sub='معاه قطع أقل عند القفل'; }
-      else if(pPips<aPips){ winner='player'; points=aPips; state.scores.player+=points; title='فزت بالغلق! 🎉'; sub='نفس عدد القطع، بس نقطك أقل'; }
-      else if(aPips<pPips){ winner='ai'; points=pPips; state.scores.ai+=points; title='خسرت بالغلق'; sub='نفس عدد القطع، بس نقطه أقل'; }
-      else { winner='draw'; title='تعادل!'; sub='تساوى العدد والنقط في القفل'; }
+      if(pCount<aCount){ winner='player'; points=aPips; state.scores.player+=points; reasonKey='win-block-fewer'; }
+      else if(aCount<pCount){ winner='ai'; points=pPips; state.scores.ai+=points; reasonKey='lose-block-fewer'; }
+      else if(pPips<aPips){ winner='player'; points=aPips; state.scores.player+=points; reasonKey='win-block-pips'; }
+      else if(aPips<pPips){ winner='ai'; points=pPips; state.scores.ai+=points; reasonKey='lose-block-pips'; }
+      else { winner='draw'; reasonKey='draw-block'; }
     }
     if(winner!=='draw'){ state.lastRoundWinner = winner; } // في حالة التعادل، الكسبان اللي فات يفضل هو اللي يبدأ
     const gameOver = state.scores.player>=state.targetScore || state.scores.ai>=state.targetScore;
-    const card = document.getElementById('resultCard');
-    let matchLine='', gameLine='', matchTrulyOver=false;
+    let gameWinner=null, matchTrulyOver=false, wasDecisive=false, decisiveAfter=state.decisiveGame;
     if(gameOver){
-      const gameWinner = state.scores.player > state.scores.ai ? 'player' : 'ai';
-      const wasDecisive = state.decisiveGame;
+      gameWinner = state.scores.player > state.scores.ai ? 'player' : 'ai';
+      wasDecisive = state.decisiveGame;
       state.gameWins[gameWinner]++;
       if(wasDecisive){
         matchTrulyOver = true;
-        const mw = gameWinner==='player' ? 'أنت' : 'الخصم';
-        matchLine = `<h2 style="margin-top:18px;">${mw==='أنت' ? 'مبروك، فزت بالفاصل والمباراة! 🏆' : 'خسرت الفاصل، خسرت المباراة'}</h2>
-          <p class="sub">الجيمات النهائية: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}</p>`;
         clearSave();
       } else {
-        state.decisiveGame = (state.gameWins.player === state.gameWins.ai);
+        decisiveAfter = (state.gameWins.player === state.gameWins.ai);
+        state.decisiveGame = decisiveAfter;
         state.scores.player = 0; state.scores.ai = 0;
-        gameLine = `<h2 style="margin-top:14px;">${gameWinner==='player' ? 'فزت بالجيم! 🎯' : 'خسرت الجيم'}</h2>
-          <p class="sub">الجيمات: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}${state.decisiveGame ? ' — الجيم الجاي هو الفاصل! ⚡' : ''}</p>`;
       }
     }
-    // نكشف إيد الاتنين بعد نهاية الجولة عشان الحساب يبقى على المكشوف بالكامل
-    const revealTiles = hand => hand.map(t=>`<div class="mini-domino"><div class="half">${pipsHTML(t.a)}</div><div class="half">${pipsHTML(t.b)}</div></div>`).join('');
-    const revealHTML = `
-      <div class="reveal-hands">
-        <div class="reveal-row">
-          <div class="who-label">ورقك (${pPips} نقطة)</div>
-          <div class="reveal-tiles">${revealTiles(state.playerHand)}</div>
-        </div>
-        <div class="reveal-row">
-          <div class="who-label">ورق الخصم (${aPips} نقطة)</div>
-          <div class="reveal-tiles">${revealTiles(state.aiHand)}</div>
-        </div>
-      </div>`;
-    card.innerHTML = `
-      <h2>${title}</h2>
-      <p class="sub">${sub}${points?` — ${points} نقطة`:''}</p>
-      <div class="score-line"><span>أنت</span><b>${state.scores.player}</b></div>
-      <div class="score-line"><span>الخصم</span><b>${state.scores.ai}</b></div>
-      ${revealHTML}
-      ${gameLine}
-      ${matchLine}
-      <div class="result-actions">
-        ${matchTrulyOver
-          ? `<button class="plaque-btn primary" onclick="Nav.newMatch()">مباراة جديدة</button><button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`
-          : `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startDraft()">${gameOver ? 'الجيم التالي (تسقي)' : 'الجولة التالية (تسقي)'}</button><button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`
-        }
-      </div>`;
+    // بيانات محايدة عن هوية اللاعبين - كل جهاز (هوست/صاحب) هيبني منها الكارت بمنظوره هو،
+    // عشان "أنت"/"الخصم" تبقى صح عند الاتنين مش بس عند الهوست
+    state.lastResult = { winner, reasonKey, points, pPips, aPips, gameOver, gameWinner, matchTrulyOver, wasDecisive, decisiveAfter };
     Render.oppHand(true);
-    state.pendingResult = card.innerHTML;
+    Render.buildResultCard();
     document.getElementById('resultOverlay').classList.add('active');
     if(!matchTrulyOver){ saveGame(); }
+    if(Net.active) Net.hostSync();
   }
 };
 
@@ -891,22 +924,32 @@ function getValidMoves(hand){
   return moves;
 }
 
-function checkPlayerTurnStart(){
-  state.busy = false; // فك القفل للاعب
-  state.selectedIdx=null; Render.sidePicker(null);
-  const moves = getValidMoves(state.playerHand);
+// اتعملت عشان تشتغل مع أي مقعد (player أو ai) - بتفحص هل عنده نقلة، ولازم يسحب،
+// ولا مفيش حركة خالص. لما بيبقى في وضع الشبكة، بقعد "ai" بقى صاحبك فمنسبوش نقفله
+// بحركة AI تلقائية - كل واحد هيتعامل مع دوره بنفسه من جهازه.
+function checkTurnStart(seat){
+  seat = seat || 'player';
+  state.busy = false; // فك القفل لصاحب الدور
+  if(seat==='player'){ state.selectedIdx=null; Render.sidePicker(null); }
+  const moves = getValidMoves(handOf(seat));
   if(moves.length>0){ state.drawMode=false; Render.all(); return; }
   if(state.boneyard.length>0){
     state.drawMode=true; Render.all(); 
-    if (state.pileDrawFrom) Toast.show(`لا نقلة متاحة — اسحب من ${state.pileDrawFrom === 'top' ? 'فوق' : 'تحت'}`);
-    else Toast.show('لا نقلة متاحة — اختر السحب من فوق أو تحت');
+    if(seat==='player'){
+      if (state.pileDrawFrom) Toast.show(`لا نقلة متاحة — اسحب من ${state.pileDrawFrom === 'top' ? 'فوق' : 'تحت'}`);
+      else Toast.show('لا نقلة متاحة — اختر السحب من فوق أو تحت');
+    }
   } else {
     state.drawMode=false; state.passesInRow++; Render.all();
-    Toast.show('لا توجد حركة، تم تمرير دورك');
+    if(seat==='player') Toast.show('لا توجد حركة، تم تمرير دورك');
     if(state.passesInRow>=2){ Round.end(null,'blocked'); return; }
-    state.turn='ai'; Render.status(); Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 800);
+    const next = otherSeat(seat);
+    state.turn=next; Render.status();
+    if(Net.active){ Net.hostSync(); checkTurnStart(next); Net.hostSync(); }
+    else if(seat==='player'){ Toast.show('دور الخصم'); setTimeout(AI.takeTurn, 800); }
   }
 }
+function checkPlayerTurnStart(){ checkTurnStart('player'); }
 
 const Drag = {
   session:null,
@@ -1401,7 +1444,62 @@ const Render = {
       });
     }
   },
-  pulsePile(){ const el = document.querySelector('.pile-stack'); if(!el) return; el.classList.remove('grabbed'); void el.offsetWidth; el.classList.add('grabbed'); }
+  pulsePile(){ const el = document.querySelector('.pile-stack'); if(!el) return; el.classList.remove('grabbed'); void el.offsetWidth; el.classList.add('grabbed'); },
+  // بيبني كارت نتيجة الجولة من state.lastResult (بيانات محايدة) + state.scores/gameWins الحاليين -
+  // بالطريقة دي كل جهاز (هوست أو صاحبه) بيشوف "أنت"/"الخصم" صح من منظوره هو، من غير ما نكرر منطق الحساب
+  buildResultCard(){
+    const r = state.lastResult; if(!r) return;
+    const titles = {
+      'win-out':['فزت بالجولة! 🎉','أنهيت كل قطعك أولاً'], 'lose-out':['خسرت الجولة','الخصم أنهى قطعه أولاً'],
+      'win-block-fewer':['فزت بالغلق! 🎉','معاك قطع أقل عند القفل'], 'lose-block-fewer':['خسرت بالغلق','معاه قطع أقل عند القفل'],
+      'win-block-pips':['فزت بالغلق! 🎉','نفس عدد القطع، بس نقطك أقل'], 'lose-block-pips':['خسرت بالغلق','نفس عدد القطع، بس نقطه أقل'],
+      'draw-block':['تعادل!','تساوى العدد والنقط في القفل']
+    };
+    const [title, sub] = titles[r.reasonKey] || ['',''];
+    let gameLine='', matchLine='';
+    if(r.gameOver){
+      if(r.wasDecisive){
+        const mw = r.gameWinner==='player';
+        matchLine = `<h2 style="margin-top:18px;">${mw ? 'مبروك، فزت بالفاصل والمباراة! 🏆' : 'خسرت الفاصل، خسرت المباراة'}</h2>
+          <p class="sub">الجيمات النهائية: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}</p>`;
+      } else {
+        gameLine = `<h2 style="margin-top:14px;">${r.gameWinner==='player' ? 'فزت بالجيم! 🎯' : 'خسرت الجيم'}</h2>
+          <p class="sub">الجيمات: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}${r.decisiveAfter ? ' — الجيم الجاي هو الفاصل! ⚡' : ''}</p>`;
+      }
+    }
+    const revealTiles = hand => hand.map(t=>`<div class="mini-domino"><div class="half">${pipsHTML(t.a)}</div><div class="half">${pipsHTML(t.b)}</div></div>`).join('');
+    const revealHTML = `
+      <div class="reveal-hands">
+        <div class="reveal-row">
+          <div class="who-label">ورقك (${r.pPips} نقطة)</div>
+          <div class="reveal-tiles">${revealTiles(state.playerHand)}</div>
+        </div>
+        <div class="reveal-row">
+          <div class="who-label">ورق الخصم (${r.aPips} نقطة)</div>
+          <div class="reveal-tiles">${revealTiles(state.aiHand)}</div>
+        </div>
+      </div>`;
+    let actionsHTML;
+    if(Net.active && Net.role!=='host'){
+      // الضيف/المتفرج مش هو اللي بيقرر الخطوة الجاية - بننتظر الهوست
+      actionsHTML = `<p class="sub" style="margin-top:14px;">بانتظار قرار المضيف...</p>`;
+    } else {
+      actionsHTML = r.matchTrulyOver
+        ? `<button class="plaque-btn primary" onclick="${Net.active ? 'Net.hostPostMatch()' : "Nav.newMatch()"}">${Net.active ? 'الرجوع لقائمة الماتش' : 'مباراة جديدة'}</button>${Net.active ? '' : `<button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`}`
+        : `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startDraft();">${r.gameOver ? 'الجيم التالي (تسقي)' : 'الجولة التالية (تسقي)'}</button>${Net.active ? '' : `<button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`}`;
+    }
+    const card = document.getElementById('resultCard');
+    card.innerHTML = `
+      <h2>${title}</h2>
+      <p class="sub">${sub}${r.points?` — ${r.points} نقطة`:''}</p>
+      <div class="score-line"><span>أنت</span><b>${state.scores.player}</b></div>
+      <div class="score-line"><span>الخصم</span><b>${state.scores.ai}</b></div>
+      ${revealHTML}
+      ${gameLine}
+      ${matchLine}
+      <div class="result-actions">${actionsHTML}</div>`;
+    state.pendingResult = card.innerHTML;
+  }
 };
 
 // ==================== نظام اللعب مع صاحبك (شبكة محلية) ====================
@@ -1581,7 +1679,7 @@ const Lobby = {
       if (this.pendingInviteGuest === guest) {
         this.pendingInviteGuest = null;
         QMP.startWithChosen(guest);
-        MPUI.onMatchStarted(guest.name);
+        MPUI.onMatchStarted(guest.name, guest);
       }
     } else if (data.type === 'invite-reject') {
       if (this.pendingInviteGuest === guest) {
@@ -1589,7 +1687,7 @@ const Lobby = {
         Toast.show(guest.name + ' رفض الدعوة');
         MPUI.showChoosePlayer();
       }
-    }
+    } else if (data.type === 'game-action') { Net.handleAction(data, guest); }
   },
 
   handleGuestMessage(data){
@@ -1597,6 +1695,8 @@ const Lobby = {
     else if (data.type === 'invite') { MPUI.showIncomingInvite(data.from); }
     else if (data.type === 'start-game') { MPUI.onGameStart(data.role); }
     else if (data.type === 'kicked') { this.wasKicked = true; }
+    else if (data.type === 'game-state') { Net.applyIncomingState(data.state); }
+    else if (data.type === 'game-ended') { MPUI.onGameEnded(); }
   }
 };
 
@@ -1678,6 +1778,93 @@ const Transport = {
   active: null, // 'quick' أو 'manual'
   send(obj){ if(this.active==='quick') QMP.send(obj); else if(this.active==='manual') MP.send(obj); },
   setOnData(fn){ QMP.onData = fn; MP.onData = fn; }
+};
+
+// ==================== الجسر بين نظام الأوضة (Lobby) ونفس محرك اللعب الأساسي ====================
+// الفكرة: نفس الـstate/Game/Round/Board/AI بتاعت اللعب الفردي بالظبط، من غير أي تعديل في سلوكها
+// الأوفلاين. الهوست هو مصدر الحقيقة الوحيد وبيشغل المحرك زي ما هو، بس "مقعد" الـai بقى بيتغذى
+// بحركات صاحبك الجاية من الشبكة بدل خوارزمية الـAI. صاحب (guest) شاشته مجرد مرآة معكوسة (هو
+// "player" عنده، والهوست "ai" عنده) بتتحدث كل ما توصله حالة جديدة، وأي لمسة منه بتتبعت كطلب
+// للهوست بدل ما تتنفذ عنده. المتفرج بياخد نفس حالة الهوست زي ما هي، من غير عكس، وبس بيتفرج.
+const Net = {
+  active: false,        // فورة شبكة فعلية شغالة دلوقتي (مش مجرد لوبي)
+  role: null,           // 'host' | 'guest' | 'spectator'
+  peerGuestRef: null,   // للهوست بس: مرجع الضيف اللي بيلعب معاه (null في الطريقة اليدوية - شخص واحد بس)
+  peerGuestName: '',    // للهوست بس: اسم اللاعب المختار، لعرضه تاني في زرار "جولة جديدة"
+
+  sendAction(kind, payload){ Transport.send(Object.assign({ type:'game-action', kind }, payload)); },
+
+  hostSync(){
+    if(this.role!=='host') return;
+    const snapshot = JSON.stringify(state);
+    if(Transport.active==='quick') QMP.broadcast({ type:'game-state', state: snapshot });
+    else Transport.send({ type:'game-state', state: snapshot });
+  },
+
+  // بتوصل من الهوست لصاحبه/للمتفرجين - نسخة كاملة من حالة اللعبة عند الهوست
+  applyIncomingState(raw){
+    let s; try{ s = JSON.parse(raw); }catch(e){ return; }
+    if(this.role==='spectator'){
+      Object.assign(state, s);
+    } else if(this.role==='guest'){
+      // بنعكس المنظور: أنا "player" عندي، والهوست "ai" عندي - القطع، الدور، النتيجة كلها بتتقلب
+      const mine = s.aiHand, theirs = s.playerHand;
+      s.playerHand = mine; s.aiHand = theirs;
+      s.turn = s.turn==='player' ? 'ai' : 'player';
+      s.draftTurn = s.draftTurn==='player' ? 'ai' : 'player';
+      s.lastPlayedBy = s.lastPlayedBy==='player' ? 'ai' : (s.lastPlayedBy==='ai' ? 'player' : s.lastPlayedBy);
+      const sc = s.scores; s.scores = { player: sc.ai, ai: sc.player };
+      const gw = s.gameWins; s.gameWins = { player: gw.ai, ai: gw.player };
+      if(s.lastResult){
+        const r = s.lastResult;
+        r.winner = r.winner==='player' ? 'ai' : (r.winner==='ai' ? 'player' : r.winner);
+        r.gameWinner = r.gameWinner==='player' ? 'ai' : (r.gameWinner==='ai' ? 'player' : r.gameWinner);
+        const flip = { 'win-out':'lose-out','lose-out':'win-out','win-block-fewer':'lose-block-fewer','lose-block-fewer':'win-block-fewer','win-block-pips':'lose-block-pips','lose-block-pips':'win-block-pips','draw-block':'draw-block' };
+        r.reasonKey = flip[r.reasonKey] || r.reasonKey;
+      }
+      Object.assign(state, s);
+    } else { return; }
+    this.renderCurrentPhase();
+  },
+
+  renderCurrentPhase(){
+    if(state.screen!=='game') return;
+    if(state.phase==='draft'){ Render.draft(); Render.hand(); Render.status(); Render.oppHand(); }
+    else if(state.phase==='game'){ Render.all(); }
+    if(state.pendingResult){
+      if(this.role!=='host') Render.buildResultCard(); // نعيد بناء الكارت بمنظوري أنا مش منظور الهوست
+      document.getElementById('resultOverlay').classList.add('active');
+    } else {
+      document.getElementById('resultOverlay').classList.remove('active');
+    }
+  },
+
+  // بيوصل للهوست بس - طلب حركة جاي من صاحبه اللي بيلعب
+  handleAction(data, guestRef){
+    if(this.role!=='host') return;
+    if(this.peerGuestRef && guestRef && guestRef!==this.peerGuestRef) return; // أي حد تاني (متفرج) اتجاهل
+    if(data.kind==='draftPick') Game.pickDraftTile(data.idx, 'ai');
+    else if(data.kind==='play') Game.play(data.idx, data.side, 'ai');
+    else if(data.kind==='draw') Game.drawFromPile(data.side, 'ai');
+  },
+
+  hostStartMatch(guestRef){
+    this.active = true; this.role = 'host'; this.peerGuestRef = guestRef;
+    Nav.newMatch();
+  },
+  guestEnterMatch(){ this.active = true; this.role = 'guest'; Nav.go('game'); },
+  spectatorEnterMatch(){ this.active = true; this.role = 'spectator'; Nav.go('game'); },
+
+  // الهوست بعد ما الماتش يخلص خالص - يرجع لقائمة الماتش (جولة جديدة / غيّر اللاعب)
+  hostPostMatch(){
+    Nav.closeResult();
+    if(Transport.active==='quick') QMP.broadcast({ type:'game-ended' });
+    else Transport.send({ type:'game-ended' });
+    this.active = false;
+    Nav.go('mp');
+    MPUI.show('mp-match-hub');
+  },
+  reset(){ this.active = false; this.role = null; this.peerGuestRef = null; }
 };
 
 const MPUI = {
@@ -1904,25 +2091,32 @@ const MPUI = {
     else { this.show('mp-lobby'); this.renderLobby(); }
   },
 
-  onMatchStarted(playerName){
-    this.show('mp-match-hub');
-    document.getElementById('mp-match-status').textContent = `بدأت اللعبة مع ${playerName} 🎉 (والباقيين بيتفرجوا)`;
-    document.getElementById('mp-match-host-actions').style.display = '';
-    // هنا هيتم فتح مباراة الدومينو الفعلية بين الهوست واللاعب المختار في المرحلة الجاية
+  onMatchStarted(playerName, guestRef){
+    Toast.show(`بدأت اللعبة مع ${playerName} 🎉`);
+    Net.hostStartMatch(guestRef || null);
   },
 
   onGameStart(role){
-    this.show('mp-match-hub');
-    document.getElementById('mp-match-host-actions').style.display = 'none';
-    document.getElementById('mp-match-status').textContent = (role === 'player') ? 'دورك! هتلعب دلوقتي 🎮' : 'هتتفرج على اللعبة دلوقتي 👀';
     Toast.show(role === 'player' ? 'دورك تلعب 🎮' : 'هتتفرج على اللعبة 👀');
-    // هنا هيتم فتح شاشة الدومينو الفعلية (لعب أو تفرج) في المرحلة الجاية
+    if(role === 'player') Net.guestEnterMatch();
+    else Net.spectatorEnterMatch();
+  },
+
+  // بعد ما ماتش كامل يخلص، الهوست بيرجع هنا (لوحة الماتش) عشان يقرر يلعب تاني ولا يغيّر اللاعب
+  onGameEnded(){
+    Net.reset();
+    Nav.go('mp');
+    this.show('mp-lobby');
+    if(Lobby.isHost || Lobby.myName) this.renderLobby();
+    Toast.show('الماتش خلص، استنى دعوة تانية 🎲');
   },
 
   rematch(){
-    Toast.show('هيتم ربط جولة جديدة بنفس اللاعب هنا (المرحلة الجاية)');
+    if(!Net.peerGuestRef && Transport.active==='quick'){ Toast.show('اللاعب ده مش متصل دلوقتي'); return; }
+    MPUI.onMatchStarted(Lobby.isHost ? (Lobby.participants.find(p=>p.guestRef===Net.peerGuestRef)||{}).name || 'صاحبك' : 'صاحبك', Net.peerGuestRef);
   },
   changePlayer(){
+    Net.peerGuestRef = null;
     this.show('mp-lobby');
     this.renderLobby();
   },
