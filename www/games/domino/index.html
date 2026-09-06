@@ -2072,9 +2072,24 @@ const Voice = {
     if(Transport.active==='manual'){ Toast.show('الصوت متاح دلوقتي في وضع "السيرفر السريع" بس'); return; }
     if(!Transport.active){ return; }
     if(!this.localStream){
+      if(window.isSecureContext===false){
+        Toast.show('المتصفح مش هيسمح بالمايك غير من رابط آمن (https) - جرب تفتح اللعبة من رابط https');
+        return;
+      }
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        Toast.show('المتصفح ده مش بيدعم فتح المايك من هنا (mediaDevices مش متاحة)');
+        return;
+      }
       try{
         this.localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-      }catch(e){ Toast.show('معرفناش نوصل للمايك - افتح إذن المايك للمتصفح 🎙️'); return; }
+      }catch(e){
+        const reason = e && e.name === 'NotAllowedError' ? 'إذن المايك مرفوض - افتحه من إعدادات المتصفح'
+          : e && e.name === 'NotFoundError' ? 'مفيش مايك متوصل بالجهاز'
+          : e && e.name === 'SecurityError' ? 'محتاج رابط آمن (https) عشان المايك يشتغل'
+          : ('حصل خطأ: ' + (e && (e.name || e.message) || 'غير معروف'));
+        Toast.show(reason);
+        return;
+      }
       this.micOn = true;
       this.applyLocalMuteFlag();
       this.ensureMesh();
