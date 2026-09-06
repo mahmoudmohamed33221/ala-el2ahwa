@@ -220,6 +220,10 @@
 
       <div id="mp-host-setup" style="display:none;">
         <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-host-my-name" type="text" placeholder="اسمك اللي هيبان في الأوضة" style="width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px;">
+        </div>
+        <div class="setting-group" style="text-align:right;">
           <div class="setting-label">اسم السيرفر</div>
           <input id="mp-host-name" type="text" placeholder="مثلاً: طاولة محمود" style="width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px;">
         </div>
@@ -278,23 +282,39 @@
         <p id="mp-join-status" style="color:var(--brass-light); font-size:13px; margin-top:14px; font-weight:700;">في انتظار صاحبك يكمل الاتصال...</p>
       </div>
 
-      <div id="mp-connected" style="display:none;">
-        <p style="color:#8ee08e; font-size:20px; font-weight:800; margin-top:20px;">متصل ✅</p>
-        <div id="mp-host-lobby" style="display:none;">
-          <p style="color:var(--text-muted); font-size:13px; margin:10px 0 6px;">اللي داخلين معاك:</p>
-          <div id="mp-guest-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
-          <button class="plaque-btn primary" style="width:100%;" onclick="MPUI.startMatch()">ابدأ اللعبة</button>
-        </div>
-        <div id="mp-guest-lobby" style="display:none;">
-          <p id="mp-guest-status" style="color:var(--text-muted); font-size:14px; margin-top:6px;">اضغط "جاهز" وانتظر الهوست يبدأ اللعبة</p>
-          <button class="plaque-btn primary" id="mp-ready-btn" style="width:100%; margin-top:14px;" onclick="MPUI.markReady()">جاهز ✅</button>
-        </div>
+      <div id="mp-lobby" style="display:none;">
+        <p style="color:#8ee08e; font-size:18px; font-weight:800; margin-top:10px;">متصل ✅</p>
+        <p style="color:var(--text-muted); font-size:13px; margin:10px 0 6px;">اللي في الأوضة:</p>
+        <div id="mp-lobby-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+        <button class="plaque-btn primary" id="mp-my-ready-btn" style="width:100%;" onclick="MPUI.toggleReady()">جاهز ✅</button>
+        <button class="plaque-btn primary" id="mp-start-btn" style="width:100%; margin-top:10px; display:none;" onclick="MPUI.startMatch()">ابدأ اللعبة</button>
+        <p id="mp-lobby-note" style="color:var(--text-muted); font-size:12px; margin-top:12px;"></p>
+        <button class="plaque-btn" style="width:100%; margin-top:14px; background:#5c2318;" onclick="MPUI.exitServer()">خروج من السيرفر</button>
       </div>
 
       <div id="mp-choose-player" style="display:none;">
         <p style="color:var(--text-muted); font-size:14px; margin-bottom:14px;">اختار مين هيلعب معاك، الباقيين هيتفرجوا:</p>
         <div id="mp-player-list" style="display:flex; flex-direction:column; gap:10px;"></div>
-        <button class="plaque-btn" style="width:100%; margin-top:16px;" onclick="MPUI.showLobby(true)">رجوع</button>
+        <button class="plaque-btn" style="width:100%; margin-top:16px;" onclick="MPUI.backToLobby()">رجوع</button>
+      </div>
+
+      <div id="mp-invite-wait" style="display:none;">
+        <p style="color:var(--text-muted); font-size:15px; margin-top:30px;">في انتظار رد <span id="mp-invite-wait-name"></span>...</p>
+        <button class="plaque-btn" style="width:100%; margin-top:20px;" onclick="MPUI.backToLobby()">إلغاء</button>
+      </div>
+
+      <div id="mp-invite-incoming" style="display:none;">
+        <p style="color:var(--brass-light); font-size:18px; font-weight:800; margin-top:30px;"><span id="mp-invite-from-name"></span> دعاك تلعب معاه 🎮</p>
+        <button class="plaque-btn primary" style="width:100%; margin-top:20px;" onclick="MPUI.respondInvite(true)">قبول ✅</button>
+        <button class="plaque-btn" style="width:100%; margin-top:10px;" onclick="MPUI.respondInvite(false)">رفض ❌</button>
+      </div>
+
+      <div id="mp-match-hub" style="display:none;">
+        <p id="mp-match-status" style="color:#8ee08e; font-size:18px; font-weight:800; margin-top:30px;"></p>
+        <div id="mp-match-host-actions" style="display:none;">
+          <button class="plaque-btn primary" style="width:100%; margin-top:20px;" onclick="MPUI.rematch()">جولة جديدة (نفس اللاعب)</button>
+          <button class="plaque-btn" style="width:100%; margin-top:10px;" onclick="MPUI.changePlayer()">غيّر اللاعب</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1389,12 +1409,19 @@ const Render = {
 // الطريقة السريعة: عن طريق مكتبة PeerJS (محتاجة نت لحظة الاتصال بس)
 const QMP = {
   peer: null, conn: null, isHost: false, hostPassword: '',
-  guests: [], // {conn, name, ready} - بس للهوست
-  onData: null, onOpen: null, onGuestUpdate: null, onGameStart: null,
+  guests: [], // {conn, name} - بس للهوست، الجاهزية والاختيار بقوا في Lobby
+  onData: null, onOpen: null, onGuestJoin: null, onGuestLeave: null, onClose: null,
 
   _roomId(name){ return 'alaelahwa-domino-' + name.trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g, '-'); },
 
+  // بيقفل أي اتصال قديم قبل ما يبدأ واحد جديد - بيحل مشكلة "الاسم مستخدم" لما ترجع تنشئ سيرفر تاني
+  destroy(){
+    try { if (this.peer) this.peer.destroy(); } catch(e){}
+    this.peer = null; this.conn = null; this.guests = [];
+  },
+
   createServer(name, password){
+    this.destroy();
     return new Promise((resolve, reject) => {
       if (typeof Peer === 'undefined') return reject(new Error('NO_LIB'));
       this.isHost = true;
@@ -1410,33 +1437,29 @@ const QMP = {
           reject(new Error(err && err.type === 'unavailable-id' ? 'NAME_TAKEN' : 'NETWORK')); }
       });
       this.peer.on('connection', (conn) => {
-        const guest = { conn, name: 'صاحبك', ready: false };
-        this.guests.push(guest);
+        const guest = { conn, name: 'صاحبك' };
         conn.on('data', (data) => {
           if (data && data.type === 'auth') {
             if (this.hostPassword && data.pass !== this.hostPassword) {
               conn.send({ type: 'auth-fail' });
               setTimeout(() => conn.close(), 300);
-              this.guests = this.guests.filter(g => g !== guest);
             } else {
               guest.name = (data.name && data.name.trim()) || 'صاحبك';
+              this.guests.push(guest);
               conn.send({ type: 'auth-ok' });
-              if (this.onGuestUpdate) this.onGuestUpdate(this.guests);
+              if (this.onGuestJoin) this.onGuestJoin(guest);
             }
-          } else if (data && data.type === 'ready') {
-            guest.ready = true;
-            if (this.onGuestUpdate) this.onGuestUpdate(this.guests);
           } else if (this.onData) { this.onData(data, guest); }
         });
         conn.on('close', () => {
           this.guests = this.guests.filter(g => g !== guest);
-          if (this.onGuestUpdate) this.onGuestUpdate(this.guests);
+          if (this.onGuestLeave) this.onGuestLeave(guest);
         });
       });
     });
   },
 
-  // الهوست بيستخدمها لما يدوس "ابدأ اللعبة" بعد ما يختار مين يلعب
+  // الهوست بيستخدمها لما اللاعب المختار يقبل الدعوة
   startWithChosen(chosenGuest){
     this.guests.forEach((g) => {
       g.conn.send({ type: 'start-game', role: g === chosenGuest ? 'player' : 'spectator' });
@@ -1444,8 +1467,14 @@ const QMP = {
   },
 
   broadcast(obj){ this.guests.forEach(g => { if (g.conn.open) g.conn.send(obj); }); },
+  sendTo(guest, obj){ if (guest && guest.conn && guest.conn.open) guest.conn.send(obj); },
+  kickGuest(guest){
+    this.sendTo(guest, { type: 'kicked' });
+    setTimeout(() => { try { guest.conn.close(); } catch(e){} }, 200);
+  },
 
   joinServer(name, password, myName){
+    this.destroy();
     return new Promise((resolve, reject) => {
       if (typeof Peer === 'undefined') return reject(new Error('NO_LIB'));
       this.isHost = false;
@@ -1459,10 +1488,10 @@ const QMP = {
         this.conn.on('data', (data) => {
           if (data && data.type === 'auth-ok') { if(!settled){ settled=true; clearTimeout(timer); resolve(); } if (this.onOpen) this.onOpen(); }
           else if (data && data.type === 'auth-fail') { if(!settled){ settled=true; clearTimeout(timer); reject(new Error('WRONG_PASSWORD')); } }
-          else if (data && data.type === 'start-game') { if (this.onGameStart) this.onGameStart(data.role); }
           else if (this.onData) { this.onData(data); }
         });
         this.conn.on('error', () => { if(!settled){ settled=true; clearTimeout(timer); reject(new Error('NETWORK')); } });
+        this.conn.on('close', () => { if (this.onClose) this.onClose(); });
       });
       this.peer.on('error', (err) => {
         if(!settled){ settled=true; clearTimeout(timer);
@@ -1471,9 +1500,104 @@ const QMP = {
     });
   },
 
-  markReady(){ if (this.conn && this.conn.open) this.conn.send({ type: 'ready' }); },
-
   send(obj){ if (this.conn && this.conn.open) this.conn.send(obj); }
+};
+
+// نظام الأوضة الموحد: قائمة كل اللي دخلوا (الهوست + الضيوف) وحالة الجاهزية بتاعت كل واحد، وتبادل الدعوات
+const Lobby = {
+  isHost: false, myName: '', myReady: false,
+  roomName: '', roomPassword: '', // بنحفظهم عشان نقدر نعمل بيهم انتقال الاستضافة
+  participants: [], // للهوست: [{name, ready, isHost, guestRef}]  |  للضيف: نسخة متزامنة من الهوست
+  pendingInviteGuest: null, // للهوست: مين بعتله دعوة دلوقتي
+  wasKicked: false,
+
+  reset(){
+    this.isHost = false; this.myName = ''; this.myReady = false;
+    this.roomName = ''; this.roomPassword = ''; this.participants = [];
+    this.pendingInviteGuest = null; this.wasKicked = false;
+  },
+
+  hostInit(myName, roomName, roomPassword){
+    this.isHost = true; this.myName = myName || 'الهوست'; this.myReady = false;
+    this.roomName = roomName; this.roomPassword = roomPassword || '';
+    this.participants = [{ name: this.myName, ready: false, isHost: true }];
+  },
+
+  hostAddGuest(guest){
+    this.participants.push({ name: guest.name, ready: false, isHost: false, guestRef: guest });
+    this.hostBroadcast();
+  },
+  hostRemoveGuest(guest){
+    this.participants = this.participants.filter(p => p.guestRef !== guest);
+    this.hostBroadcast();
+  },
+  hostKick(guest){
+    QMP.kickGuest(guest);
+    this.hostRemoveGuest(guest);
+  },
+  hostSetGuestReady(guest, ready){
+    const p = this.participants.find(p => p.guestRef === guest);
+    if (p) p.ready = !!ready;
+    this.hostBroadcast();
+  },
+  hostToggleMyReady(){
+    this.myReady = !this.myReady;
+    this.participants[0].ready = this.myReady;
+    this.hostBroadcast();
+  },
+  hostBroadcast(){
+    QMP.broadcast({ type: 'lobby-update', participants: this.participants.map(p => ({ name: p.name, ready: p.ready, isHost: p.isHost })) });
+    MPUI.renderLobby();
+  },
+  allReady(){ return this.participants.length >= 2 && this.participants.every(p => p.ready); },
+
+  guestInit(myName, roomName, roomPassword){
+    this.isHost = false; this.myName = myName || 'أنا'; this.myReady = false;
+    this.roomName = roomName; this.roomPassword = roomPassword || '';
+    this.participants = []; this.wasKicked = false;
+  },
+  guestApplyUpdate(list){ this.participants = list; MPUI.renderLobby(); },
+  guestToggleReady(){
+    this.myReady = !this.myReady;
+    QMP.send({ type: 'ready-toggle', ready: this.myReady });
+  },
+
+  // لو الاتصال بالهوست اتقطع فجأة (مش طرد): نحاول نطلع هوست جديد بنفس اسم الروم
+  // اللي هيصبح هوست هو أول ضيف في آخر قايمة معروفة (غير نفسي لو كنت أنا الهوست الأصلي أصلاً)
+  handleDisconnected(){
+    if (this.wasKicked) { MPUI.onKicked(); return; }
+    const others = this.participants.filter(p => !p.isHost);
+    const iAmNext = others.length > 0 && others[0].name === this.myName;
+    if (iAmNext) {
+      MPUI.attemptBecomeHost(this.roomName, this.roomPassword, this.myName);
+    } else {
+      MPUI.attemptRejoin(this.roomName, this.roomPassword, this.myName);
+    }
+  },
+
+  handleHostMessage(data, guest){
+    if (data.type === 'ready-toggle') { this.hostSetGuestReady(guest, data.ready); }
+    else if (data.type === 'invite-accept') {
+      if (this.pendingInviteGuest === guest) {
+        this.pendingInviteGuest = null;
+        QMP.startWithChosen(guest);
+        MPUI.onMatchStarted(guest.name);
+      }
+    } else if (data.type === 'invite-reject') {
+      if (this.pendingInviteGuest === guest) {
+        this.pendingInviteGuest = null;
+        Toast.show(guest.name + ' رفض الدعوة');
+        MPUI.showChoosePlayer();
+      }
+    }
+  },
+
+  handleGuestMessage(data){
+    if (data.type === 'lobby-update') { this.guestApplyUpdate(data.participants); }
+    else if (data.type === 'invite') { MPUI.showIncomingInvite(data.from); }
+    else if (data.type === 'start-game') { MPUI.onGameStart(data.role); }
+    else if (data.type === 'kicked') { this.wasKicked = true; }
+  }
 };
 
 // الطريقة اليدوية: WebRTC خام + تبادل كود يدوي (شغالة من غير نت خالص، شخصين بس من غير سبيكتاتور)
@@ -1540,7 +1664,13 @@ const MP = {
     return this._encode({ sdp: this.pc.localDescription, pass: password || '' });
   },
 
-  send(obj){ if (this.channel && this.channel.readyState === 'open') this.channel.send(JSON.stringify(obj)); }
+  send(obj){ if (this.channel && this.channel.readyState === 'open') this.channel.send(JSON.stringify(obj)); },
+
+  destroy(){
+    try { if (this.channel) this.channel.close(); } catch(e){}
+    try { if (this.pc) this.pc.close(); } catch(e){}
+    this.pc = null; this.channel = null;
+  }
 };
 
 // Transport: الواجهة الموحدة اللي هيستخدمها منطق اللعب الفعلي (المرحلة الجاية) - بتحدد مين الشغال، السريعة ولا اليدوية
@@ -1551,83 +1681,42 @@ const Transport = {
 };
 
 const MPUI = {
-  panels: ['mp-choice','mp-host-setup','mp-host-wait','mp-join-setup','mp-join-manual','mp-join-wait','mp-connected','mp-choose-player'],
+  panels: ['mp-choice','mp-host-setup','mp-host-wait','mp-join-setup','mp-join-manual','mp-join-wait','mp-lobby','mp-choose-player','mp-invite-wait','mp-invite-incoming','mp-match-hub'],
+  mode: null, // 'quick' أو 'manual'
   show(id){ this.panels.forEach(p => document.getElementById(p).style.display = (p===id ? '' : 'none')); },
 
   showChoice(){ this.show('mp-choice'); },
   back(){
     const choiceVisible = document.getElementById('mp-choice').style.display !== 'none';
-    if (choiceVisible) { Nav.go('menu'); }
-    else { this.show('mp-choice'); }
+    if (choiceVisible) {
+      QMP.destroy(); MP.destroy && MP.destroy();
+      Nav.go('menu');
+    } else { this.show('mp-choice'); }
   },
 
   showHostSetup(){ this.show('mp-host-setup'); document.getElementById('mp-host-quick-status').textContent=''; document.getElementById('mp-host-fallback-btn').style.display='none'; },
   showJoinSetup(){ this.show('mp-join-setup'); document.getElementById('mp-join-error').textContent=''; document.getElementById('mp-join-fallback-btn').style.display='none'; },
 
-  // بيتنادى لما الاتصال يخلص خالص، بيفرّق بين شاشة الهوست (فيها القايمة) وشاشة الضيف
-  showLobby(isHost){
-    this.show('mp-connected');
-    document.getElementById('mp-host-lobby').style.display = isHost ? '' : 'none';
-    document.getElementById('mp-guest-lobby').style.display = isHost ? 'none' : '';
-    if (isHost) {
-      QMP.onGuestUpdate = (guests) => this.renderGuestList(guests);
-      this.renderGuestList(QMP.guests);
-    } else {
-      document.getElementById('mp-ready-btn').style.display = '';
-      document.getElementById('mp-guest-status').textContent = 'اضغط "جاهز" وانتظر الهوست يبدأ اللعبة';
-      Transport.setOnData((data) => this.handleMessage(data));
-    }
-  },
-
-  renderGuestList(guests){
-    const box = document.getElementById('mp-guest-list');
-    if (!guests.length) { box.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">في انتظار حد يدخل...</p>'; return; }
-    box.innerHTML = guests.map(g => `
-      <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,.2); border:1px solid var(--brass-dark); border-radius:8px; padding:10px 14px;">
-        <span style="font-weight:700;">${g.name}</span>
-        <span style="font-size:12px; color:${g.ready ? '#8ee08e' : 'var(--text-muted)'};">${g.ready ? 'جاهز ✅' : 'لسه...'}</span>
-      </div>`).join('');
-  },
-
-  markReady(){
-    QMP.markReady();
-    document.getElementById('mp-ready-btn').style.display = 'none';
-    document.getElementById('mp-guest-status').textContent = 'تمام، في انتظار الهوست يبدأ اللعبة...';
-  },
-
-  handleMessage(data){
-    // رسايل عامة بعد الاتصال (غير start-game اللي بتتعالج في QMP نفسها)
-  },
-
-  startMatch(){
-    const readyGuests = QMP.guests.filter(g => g.ready);
-    if (readyGuests.length === 0) { Toast.show('محدش ضغط "جاهز" لسه'); return; }
-    if (readyGuests.length === 1) { this.confirmStart(readyGuests[0]); return; }
-    // أكتر من واحد جاهز: نسيب الهوست يختار مين يلعب
-    const box = document.getElementById('mp-player-list');
-    box.innerHTML = readyGuests.map((g, i) => `<button class="plaque-btn primary" onclick="MPUI.confirmStart(QMP.guests[${QMP.guests.indexOf(g)}])">${g.name}</button>`).join('');
-    this.show('mp-choose-player');
-  },
-
-  confirmStart(chosenGuest){
-    QMP.startWithChosen(chosenGuest);
-    Toast.show(`بدأت اللعبة مع ${chosenGuest.name} 🎉 (والباقيين بيتفرجوا)`);
-    // هنا هيتم فتح مباراة الدومينو الفعلية بين الهوست واللاعب المختار في المرحلة الجاية
-  },
-
+  // ============ إنشاء سيرفر (الطريقة السريعة) ============
   async createServer(){
+    const myName = document.getElementById('mp-host-my-name').value.trim();
     const name = document.getElementById('mp-host-name').value.trim();
     const pass = document.getElementById('mp-host-pass').value.trim();
     const statusEl = document.getElementById('mp-host-quick-status');
     const fallbackBtn = document.getElementById('mp-host-fallback-btn');
-    if (!name) { statusEl.textContent = 'اكتب اسم للسيرفر الأول'; return; }
+    if (!myName) { statusEl.textContent = 'اكتب اسمك الأول'; return; }
+    if (!name) { statusEl.textContent = 'اكتب اسم للسيرفر'; return; }
     statusEl.textContent = 'بنحاول نوصلك بالطريقة السريعة...';
     fallbackBtn.style.display = 'none';
     try {
       await QMP.createServer(name, pass);
+      this.mode = 'quick';
       Transport.active = 'quick';
-      statusEl.textContent = 'تمام، في انتظار صاحبك يدخل...';
-      QMP.onOpen = () => { this.showLobby(true); };
+      Lobby.hostInit(myName, name, pass);
+      QMP.onGuestJoin = (guest) => { Lobby.hostAddGuest(guest); };
+      QMP.onGuestLeave = (guest) => { Lobby.hostRemoveGuest(guest); };
+      QMP.onData = (data, guest) => { Lobby.handleHostMessage(data, guest); };
+      this.enterLobby(true);
     } catch (err) {
       const msg = (err && err.message === 'NAME_TAKEN') ? 'الاسم ده مستخدم، جرب اسم تاني'
                 : 'معرفناش نوصلك بالطريقة السريعة (محتاجة نت)';
@@ -1636,6 +1725,33 @@ const MPUI = {
     }
   },
 
+  async joinServer(){
+    const myName = document.getElementById('mp-my-name').value.trim();
+    const name = document.getElementById('mp-quick-join-name').value.trim();
+    const pass = document.getElementById('mp-quick-join-pass').value.trim();
+    const errEl = document.getElementById('mp-join-error');
+    const fallbackBtn = document.getElementById('mp-join-fallback-btn');
+    errEl.textContent = '';
+    fallbackBtn.style.display = 'none';
+    if (!myName) { errEl.textContent = 'اكتب اسمك الأول'; return; }
+    if (!name) { errEl.textContent = 'اكتب اسم السيرفر'; return; }
+    errEl.textContent = 'بنحاول ندخل...';
+    try{
+      await QMP.joinServer(name, pass, myName);
+      this.mode = 'quick';
+      Transport.active = 'quick';
+      Lobby.guestInit(myName, name, pass);
+      QMP.onData = (data) => { Lobby.handleGuestMessage(data); };
+      QMP.onClose = () => { Lobby.handleDisconnected(); };
+      this.enterLobby(false);
+    }catch(err){
+      const map = { WRONG_PASSWORD:'الباسورد غلط', NOT_FOUND:'مفيش سيرفر بالاسم ده، اتأكد من الاسم' };
+      errEl.textContent = map[err && err.message] || 'معرفناش ندخل بالطريقة السريعة (محتاجة نت)';
+      if (!(err && err.message === 'WRONG_PASSWORD')) fallbackBtn.style.display = '';
+    }
+  },
+
+  // ============ الطريقة اليدوية (شخصين بس، من غير لوبي) ============
   async useManualHost(){
     const name = document.getElementById('mp-host-name').value.trim() || 'سيرفر بدون اسم';
     const pass = document.getElementById('mp-host-pass').value.trim();
@@ -1644,8 +1760,9 @@ const MPUI = {
     try{
       const code = await MP.createServer(name, pass);
       document.getElementById('mp-offer-code').value = code;
+      this.mode = 'manual';
       Transport.active = 'manual';
-      MP.onOpen = () => { this.showLobby(true); };
+      MP.onOpen = () => { this.enterManualLobby(true); };
     }catch(err){
       document.getElementById('mp-host-status').textContent = 'حصل خطأ، جرب تاني';
     }
@@ -1664,42 +1781,6 @@ const MPUI = {
     }
   },
 
-  async joinServer(){
-    const myName = document.getElementById('mp-my-name').value.trim();
-    const name = document.getElementById('mp-quick-join-name').value.trim();
-    const pass = document.getElementById('mp-quick-join-pass').value.trim();
-    const errEl = document.getElementById('mp-join-error');
-    const fallbackBtn = document.getElementById('mp-join-fallback-btn');
-    errEl.textContent = '';
-    fallbackBtn.style.display = 'none';
-    if (!myName) { errEl.textContent = 'اكتب اسمك الأول'; return; }
-    if (!name) { errEl.textContent = 'اكتب اسم السيرفر'; return; }
-    errEl.textContent = 'بنحاول ندخل...';
-    try{
-      await QMP.joinServer(name, pass, myName);
-      Transport.active = 'quick';
-      QMP.onGameStart = (role) => this.onGameStart(role);
-      this.showLobby(false);
-    }catch(err){
-      const map = { WRONG_PASSWORD:'الباسورد غلط', NOT_FOUND:'مفيش سيرفر بالاسم ده، اتأكد من الاسم' };
-      errEl.textContent = map[err && err.message] || 'معرفناش ندخل بالطريقة السريعة (محتاجة نت)';
-      if (!(err && err.message === 'WRONG_PASSWORD')) fallbackBtn.style.display = '';
-    }
-  },
-
-  onGameStart(role){
-    const statusEl = document.getElementById('mp-guest-status');
-    document.getElementById('mp-ready-btn').style.display = 'none';
-    if (role === 'player') {
-      statusEl.textContent = 'دورك! هتلعب دلوقتي 🎮';
-      Toast.show('دورك تلعب 🎮');
-    } else {
-      statusEl.textContent = 'هتتفرج على اللعبة دلوقتي 👀';
-      Toast.show('هتتفرج على اللعبة 👀');
-    }
-    // هنا هيتم فتح شاشة الدومينو الفعلية (لعب أو تفرج) في المرحلة الجاية
-  },
-
   useManualJoin(){
     document.getElementById('mp-join-manual-error').textContent = '';
     this.show('mp-join-manual');
@@ -1714,11 +1795,27 @@ const MPUI = {
     try{
       const answer = await MP.prepareJoin(code, pass);
       document.getElementById('mp-answer-out').value = answer;
+      this.mode = 'manual';
       Transport.active = 'manual';
-      MP.onOpen = () => { this.showLobby(false); };
+      MP.onOpen = () => { this.enterManualLobby(false); };
       this.show('mp-join-wait');
     }catch(err){
       errEl.textContent = (err && err.message === 'PASSWORD_REQUIRED') ? 'السيرفر ده محتاج باسورد' : 'الكود غلط، اتأكد إنك ناسخه كامل';
+    }
+  },
+
+  enterManualLobby(isHost){
+    this.show('mp-lobby');
+    document.getElementById('mp-lobby-list').innerHTML = '';
+    document.getElementById('mp-my-ready-btn').style.display = 'none';
+    document.getElementById('mp-lobby-note').textContent = '';
+    if (isHost) {
+      document.getElementById('mp-start-btn').style.display = '';
+      document.getElementById('mp-start-btn').onclick = () => { MP.send({type:'start-game', role:'player'}); this.onMatchStarted('صاحبك'); };
+    } else {
+      document.getElementById('mp-start-btn').style.display = 'none';
+      document.getElementById('mp-lobby-note').textContent = 'في انتظار صاحبك يبدأ اللعبة...';
+      MP.onData = (data) => { if (data.type === 'start-game') this.onGameStart(data.role); };
     }
   },
 
@@ -1729,10 +1826,177 @@ const MPUI = {
     Toast.show('اتنسخ ✅');
   },
 
+  // ============ اللوبي (الطريقة السريعة) ============
+  enterLobby(isHost){
+    this.show('mp-lobby');
+    document.getElementById('mp-my-ready-btn').style.display = '';
+    this.renderLobby();
+  },
+
+  renderLobby(){
+    const list = Lobby.participants;
+    const box = document.getElementById('mp-lobby-list');
+    box.innerHTML = list.map(p => {
+      const clickable = Lobby.isHost && !p.isHost;
+      const showKick = clickable && this.kickTarget === p.name;
+      return `
+      <div style="background:rgba(0,0,0,.2); border:1px solid var(--brass-dark); border-radius:8px; padding:10px 14px;" ${clickable ? `onclick="MPUI.toggleKickTarget('${p.name.replace(/'/g,"\\'")}')"` : ''}>
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-weight:700;">${p.name}${p.isHost ? ' (الهوست)' : ''}</span>
+          <span style="font-size:12px; color:${p.ready ? '#8ee08e' : 'var(--text-muted)'};">${p.ready ? 'جاهز ✅' : 'لسه...'}</span>
+        </div>
+        ${showKick ? `<button class="plaque-btn" style="width:100%; margin-top:8px; background:#5c2318;" onclick="event.stopPropagation(); MPUI.kickGuest('${p.name.replace(/'/g,"\\'")}')">⛔ طرد</button>` : ''}
+      </div>`;
+    }).join('') || '<p style="color:var(--text-muted); font-size:13px;">في انتظار حد يدخل...</p>';
+
+    const myReady = Lobby.myReady;
+    const readyBtn = document.getElementById('mp-my-ready-btn');
+    readyBtn.textContent = myReady ? 'مش جاهز' : 'جاهز ✅';
+
+    const startBtn = document.getElementById('mp-start-btn');
+    const note = document.getElementById('mp-lobby-note');
+    if (Lobby.isHost) {
+      const ready = Lobby.allReady();
+      startBtn.style.display = ready ? '' : 'none';
+      note.textContent = ready ? '' : 'استنى الكل يضغط جاهز (وأنت كمان) عشان تقدر تبدأ';
+    } else {
+      startBtn.style.display = 'none';
+      note.textContent = 'اضغط "جاهز" وانتظر الهوست يبدأ اللعبة';
+    }
+  },
+
+  toggleReady(){
+    if (Lobby.isHost) { Lobby.hostToggleMyReady(); this.renderLobby(); }
+    else { Lobby.guestToggleReady(); }
+  },
+
+  backToLobby(){ this.show('mp-lobby'); this.renderLobby(); },
+
   startMatch(){
-    Transport.send({ type: 'start-game' });
-    Toast.show('تمام، جاهزين نبدأ نظبط اللعب مع بعض 🎉');
-    // هنا هيتم فتح مباراة الدومينو الفعلية بين الجهازين في المرحلة الجاية
+    if (!Lobby.allReady()) { Toast.show('لسه مش كله جاهز'); return; }
+    this.showChoosePlayer();
+  },
+
+  showChoosePlayer(){
+    const guests = Lobby.participants.filter(p => !p.isHost);
+    const box = document.getElementById('mp-player-list');
+    box.innerHTML = guests.map(p => `<button class="plaque-btn primary" onclick="MPUI.sendInvite('${p.name.replace(/'/g,"\\'")}')">${p.name}</button>`).join('');
+    this.show('mp-choose-player');
+  },
+
+  sendInvite(name){
+    const p = Lobby.participants.find(p => p.name === name && !p.isHost);
+    if (!p) return;
+    Lobby.pendingInviteGuest = p.guestRef;
+    QMP.sendTo(p.guestRef, { type: 'invite', from: Lobby.myName });
+    document.getElementById('mp-invite-wait-name').textContent = p.name;
+    this.show('mp-invite-wait');
+  },
+
+  showIncomingInvite(fromName){
+    document.getElementById('mp-invite-from-name').textContent = fromName;
+    this.show('mp-invite-incoming');
+  },
+
+  respondInvite(accepted){
+    QMP.send({ type: accepted ? 'invite-accept' : 'invite-reject' });
+    if (accepted) { this.onGameStart('player'); }
+    else { this.show('mp-lobby'); this.renderLobby(); }
+  },
+
+  onMatchStarted(playerName){
+    this.show('mp-match-hub');
+    document.getElementById('mp-match-status').textContent = `بدأت اللعبة مع ${playerName} 🎉 (والباقيين بيتفرجوا)`;
+    document.getElementById('mp-match-host-actions').style.display = '';
+    // هنا هيتم فتح مباراة الدومينو الفعلية بين الهوست واللاعب المختار في المرحلة الجاية
+  },
+
+  onGameStart(role){
+    this.show('mp-match-hub');
+    document.getElementById('mp-match-host-actions').style.display = 'none';
+    document.getElementById('mp-match-status').textContent = (role === 'player') ? 'دورك! هتلعب دلوقتي 🎮' : 'هتتفرج على اللعبة دلوقتي 👀';
+    Toast.show(role === 'player' ? 'دورك تلعب 🎮' : 'هتتفرج على اللعبة 👀');
+    // هنا هيتم فتح شاشة الدومينو الفعلية (لعب أو تفرج) في المرحلة الجاية
+  },
+
+  rematch(){
+    Toast.show('هيتم ربط جولة جديدة بنفس اللاعب هنا (المرحلة الجاية)');
+  },
+  changePlayer(){
+    this.show('mp-lobby');
+    this.renderLobby();
+  },
+
+  // ============ طرد / خروج / انتقال الاستضافة ============
+  kickTarget: null,
+  toggleKickTarget(name){
+    this.kickTarget = (this.kickTarget === name) ? null : name;
+    this.renderLobby();
+  },
+  kickGuest(name){
+    const p = Lobby.participants.find(p => p.name === name && !p.isHost);
+    if (!p) return;
+    Lobby.hostKick(p.guestRef);
+    this.kickTarget = null;
+    Toast.show(name + ' اتطرد من السيرفر');
+  },
+
+  exitServer(){
+    QMP.destroy();
+    Lobby.reset();
+    this.kickTarget = null;
+    this.show('mp-choice');
+  },
+
+  onKicked(){
+    QMP.destroy();
+    Lobby.reset();
+    this.show('mp-choice');
+    Toast.show('تم طردك من السيرفر ❌');
+  },
+
+  // لو الهوست خرج/اتقطع، وأنا التالي في الدور بالاسم، بحاول أبقى الهوست الجديد بنفس اسم الروم
+  async attemptBecomeHost(roomName, roomPassword, myName){
+    this.show('mp-lobby');
+    document.getElementById('mp-lobby-note').textContent = 'الهوست خرج، بنحاول نخليك هوست جديد...';
+    document.getElementById('mp-lobby-list').innerHTML = '';
+    document.getElementById('mp-my-ready-btn').style.display = 'none';
+    document.getElementById('mp-start-btn').style.display = 'none';
+    try {
+      await QMP.createServer(roomName, roomPassword);
+      this.mode = 'quick';
+      Transport.active = 'quick';
+      Lobby.hostInit(myName, roomName, roomPassword);
+      QMP.onGuestJoin = (guest) => { Lobby.hostAddGuest(guest); };
+      QMP.onGuestLeave = (guest) => { Lobby.hostRemoveGuest(guest); };
+      QMP.onData = (data, guest) => { Lobby.handleHostMessage(data, guest); };
+      Toast.show('بقيت الهوست الجديد 👑');
+      this.enterLobby(true);
+    } catch (err) {
+      Toast.show('معرفناش نكمل، ارجع للقائمة الرئيسية');
+      this.exitServer();
+    }
+  },
+
+  // غير كده، بحاول أدخل تاني على نفس اسم الروم لحد ما الهوست الجديد يفتحه
+  attemptRejoin(roomName, roomPassword, myName, triesLeft){
+    if (triesLeft === undefined) triesLeft = 8;
+    this.show('mp-lobby');
+    document.getElementById('mp-lobby-note').textContent = 'الهوست خرج، بنحاول نرجّعك تاني...';
+    document.getElementById('mp-lobby-list').innerHTML = '';
+    document.getElementById('mp-my-ready-btn').style.display = 'none';
+    document.getElementById('mp-start-btn').style.display = 'none';
+    QMP.joinServer(roomName, roomPassword, myName).then(() => {
+      this.mode = 'quick';
+      Transport.active = 'quick';
+      Lobby.guestInit(myName, roomName, roomPassword);
+      QMP.onData = (data) => { Lobby.handleGuestMessage(data); };
+      QMP.onClose = () => { Lobby.handleDisconnected(); };
+      this.enterLobby(false);
+    }).catch(() => {
+      if (triesLeft > 0) { setTimeout(() => this.attemptRejoin(roomName, roomPassword, myName, triesLeft - 1), 1500); }
+      else { Toast.show('معرفناش نرجعك للأوضة، ارجع للقائمة الرئيسية'); this.exitServer(); }
+    });
   }
 };
 </script>
