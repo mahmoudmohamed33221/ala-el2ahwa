@@ -41,13 +41,18 @@ jobs:
           rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
 
-      - name: Enable fullscreen immersive mode
+      - name: Enable fullscreen immersive mode + microphone permission
         run: |
           mkdir -p android/app/src/main/java/com/alaelahwa/domino
           cat > android/app/src/main/java/com/alaelahwa/domino/MainActivity.java << 'JAVAEOF'
           package com.alaelahwa.domino;
 
+          import android.Manifest;
+          import android.content.pm.PackageManager;
           import android.os.Bundle;
+          import android.webkit.PermissionRequest;
+          import android.webkit.WebChromeClient;
+          import androidx.core.app.ActivityCompat;
           import androidx.core.view.WindowCompat;
           import androidx.core.view.WindowInsetsCompat;
           import androidx.core.view.WindowInsetsControllerCompat;
@@ -58,6 +63,8 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   hideSystemBars();
+                  requestMicPermission();
+                  allowWebViewMic();
               }
 
               @Override
@@ -79,8 +86,31 @@ jobs:
                       );
                   }
               }
+
+              // بيسأل المستخدم إذن المايك (أندرويد 6+ محتاج السؤال ده وقت التشغيل، مش بس في الـmanifest)
+              private void requestMicPermission() {
+                  if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                          != PackageManager.PERMISSION_GRANTED) {
+                      ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1001);
+                  }
+              }
+
+              // بيخلي الـWebView (اللعبة نفسها) توافق على طلب المايك اللي جاي من getUserMedia
+              // من غير الخطوة دي، الإذن ممكن يتوافق عليه من أندرويد بس الـWebView برضه هيرفض المايك جوه اللعبة
+              private void allowWebViewMic() {
+                  getBridge().getWebView().setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public void onPermissionRequest(final PermissionRequest request) {
+                          runOnUiThread(() -> request.grant(request.getResources()));
+                      }
+                  });
+              }
           }
           JAVAEOF
+
+      - name: Add microphone permission to AndroidManifest
+        run: |
+          sed -i '/<uses-permission android:name="android.permission.INTERNET" \/>/a\    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />' android/app/src/main/AndroidManifest.xml
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
