@@ -73,9 +73,11 @@
   .status-bar .head-actions{ display:flex; align-items:center; gap:4px; }
   .mic-indicator{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; font-size:15px; border-radius:50%; background:rgba(0,0,0,.25); border:1px solid var(--brass-dark); cursor:default; }
   .mic-indicator.clickable{ cursor:pointer; }
-  .mic-indicator.muted-host::after, .mic-indicator.muted-self::after{ content:''; position:absolute; left:3px; right:3px; top:50%; height:2px; transform:rotate(-45deg); border-radius:2px; }
+  .mic-indicator.muted-host::after, .mic-indicator.muted-self::after, .mic-indicator.muted-off::after{ content:''; position:absolute; left:3px; right:3px; top:50%; height:2px; transform:rotate(-45deg); border-radius:2px; }
   .mic-indicator.muted-host::after{ background:#e0473a; }
   .mic-indicator.muted-self::after{ background:#fff; }
+  .mic-indicator.muted-off::after{ background:var(--text-muted); }
+  .mic-indicator.muted-off{ opacity:.75; }
   .user-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-bottom:8px; }
   .user-row .name-btn{ flex:1; }
   .opp-hand-area{ flex:0 0 auto; padding:1px 6px; border-bottom:1px solid rgba(200,155,60,.2); background:rgba(0,0,0,.12); line-height:0; }
@@ -1772,7 +1774,7 @@ const Lobby = {
         MPUI.showChoosePlayer();
       }
     } else if (data.type === 'game-action') { Net.handleAction(data, guest); }
-    else if (data.type === 'voice-self') { Voice.handleVoiceMessage(data, guest); }
+    else if (data.type === 'voice-self' || data.type === 'voice-open') { Voice.handleVoiceMessage(data, guest); }
   },
 
   handleGuestMessage(data){
@@ -2003,16 +2005,11 @@ const NetUI = {
     const isHost = Net.role==='host' || Lobby.isHost;
     let rows;
     const micRow = (name, canKick) => {
-      const st = Voice.states[name] || {selfMuted:false, hostMuted:false};
-      const isMe = name === Lobby.myName;
-      const micClickable = isMe || isHost;
-      const micClass = st.hostMuted ? 'muted-host' : (st.selfMuted ? 'muted-self' : '');
-      const micIcon = Voice.micOn && isMe ? (st.selfMuted||st.hostMuted ? '🔇' : '🎙️') : '🎤';
-      const micAction = isMe ? `Voice.requestSelfMuteToggle()` : (isHost ? `Voice.hostToggleMute('${name.replace(/'/g,"\\'")}')` : '');
       const safe = name.replace(/'/g,"\\'");
+      const isMe = name === Lobby.myName;
       return `<div class="user-row">
         <button class="plaque-btn ${canKick?'':'primary'} name-btn" ${canKick?`onclick="NetUI.kick('${safe}')"`:'disabled'}>${name}${isMe?' (أنا)':''}${canKick?' — دوس للطرد':''}</button>
-        <span class="mic-indicator ${micClass} ${micClickable?'clickable':''}" ${micClickable?`onclick="${micAction}"`:''}>${micIcon}</span>
+        ${Voice.indicatorHTML(name, isHost)}
       </div>`;
     };
     if(Transport.active==='quick'){
@@ -2065,8 +2062,20 @@ const Voice = {
   showBar(){ const b = document.getElementById('mpVoiceBar'); if(b) b.style.display='flex'; },
   hideBar(){ const b = document.getElementById('mpVoiceBar'); if(b) b.style.display='none'; },
 
-  myState(){ return this.states[Lobby.myName] || { selfMuted:false, hostMuted:false }; },
+  myState(){ return this.states[Lobby.myName] || { selfMuted:false, hostMuted:false, open:false }; },
   isMutedNow(name){ const s = this.states[name]; return !!(s && (s.selfMuted || s.hostMuted)); },
+
+  // بادج موحد (دايرة المايك) بيتحط جنب أي اسم - في اللوبي وفي شاشة اللعب - بيبان "مقفول" (شرطة رمادي)
+  // من أول ما الشخص يدخل لحد ما يفتح مايكه فعليًا، بعدين بيتلون حسب حالة الكتم
+  indicatorHTML(name, canControl){
+    const st = this.states[name] || { selfMuted:false, hostMuted:false, open:false };
+    const isMe = name === Lobby.myName;
+    const clickable = isMe || canControl;
+    const micClass = !st.open ? 'muted-off' : (st.hostMuted ? 'muted-host' : (st.selfMuted ? 'muted-self' : ''));
+    const micIcon = st.open ? ((st.hostMuted||st.selfMuted) ? '🔇' : '🎙️') : '🎤';
+    const action = isMe ? `Voice.requestSelfMuteToggle()` : (canControl ? `Voice.hostToggleMute('${name.replace(/'/g,"\\'")}')` : '');
+    return `<span class="mic-indicator ${micClass} ${clickable?'clickable':''}" ${clickable?`onclick="event.stopPropagation(); ${action}"`:''}>${micIcon}</span>`;
+  },
 
   async toggleMic(){
     if(Transport.active==='manual'){ Toast.show('الصوت متاح دلوقتي في وضع "السيرفر السريع" بس'); return; }
@@ -2093,11 +2102,18 @@ const Voice = {
       this.micOn = true;
       this.applyLocalMuteFlag();
       this.ensureMesh();
+      this.markMicOpen();
       this.updateButtons();
       Toast.show('المايك اتفتح 🎤');
     } else {
       this.requestSelfMuteToggle();
     }
+  },
+
+  // بيتنادى مرة واحدة أول ما الشخص يفتح مايكه فعليًا - بيبلغ الكل عشان يشيلوا علامة "مقفول" من جنب اسمه
+  markMicOpen(){
+    if(Lobby.isHost){ this._hostSetState(Lobby.myName, { open:true }); }
+    else { Transport.send({ type:'voice-open' }); }
   },
 
   requestSelfMuteToggle(){
@@ -2117,16 +2133,18 @@ const Voice = {
   // بيوصل للهوست بس - طلب فك/كتم كتم ذاتي من ضيف
   handleVoiceMessage(data, guest){
     if(!Lobby.isHost) return;
+    const p = Lobby.participants.find(p=>p.guestRef===guest);
+    if(!p) return;
     if(data.type==='voice-self'){
-      const p = Lobby.participants.find(p=>p.guestRef===guest);
-      if(!p) return;
-      const cur = this.states[p.name] || {selfMuted:false, hostMuted:false};
+      const cur = this.states[p.name] || {selfMuted:false, hostMuted:false, open:false};
       if(cur.hostMuted) return; // مينفعش يفك نفسه لو الهوست كاتمه
       this._hostSetState(p.name, { selfMuted: !!data.muted });
+    } else if(data.type==='voice-open'){
+      this._hostSetState(p.name, { open:true });
     }
   },
   _hostSetState(name, patch){
-    const cur = this.states[name] || {selfMuted:false, hostMuted:false};
+    const cur = this.states[name] || {selfMuted:false, hostMuted:false, open:false};
     this.states[name] = Object.assign({}, cur, patch);
     this.broadcastStates();
     this.applyLocalMuteFlag();
@@ -2382,7 +2400,7 @@ const MPUI = {
       return `
       <div style="background:rgba(0,0,0,.2); border:1px solid var(--brass-dark); border-radius:8px; padding:10px 14px;" ${clickable ? `onclick="MPUI.toggleKickTarget('${p.name.replace(/'/g,"\\'")}')"` : ''}>
         <div style="display:flex; align-items:center; justify-content:space-between;">
-          <span style="font-weight:700;">${p.name}${p.isHost ? ' (الهوست)' : ''}</span>
+          <span style="font-weight:700; display:flex; align-items:center; gap:8px;">${Voice.indicatorHTML(p.name, Lobby.isHost && !p.isHost)}${p.name}${p.isHost ? ' (الهوست)' : ''}</span>
           <span style="font-size:12px; color:${p.ready ? '#8ee08e' : 'var(--text-muted)'};">${p.ready ? 'جاهز ✅' : 'لسه...'}</span>
         </div>
         ${showKick ? `<button class="plaque-btn" style="width:100%; margin-top:8px; background:#5c2318;" onclick="event.stopPropagation(); MPUI.kickGuest('${p.name.replace(/'/g,"\\'")}')">⛔ طرد</button>` : ''}
