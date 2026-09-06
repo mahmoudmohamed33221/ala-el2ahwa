@@ -64,12 +64,13 @@
   
   #screen-game{padding:max(2px, env(safe-area-inset-top)) 0 0;}
   .game-content{display:flex; flex-direction:column; flex:1; min-height:0; height:100%;}
-  .status-bar{ display:flex; align-items:center; justify-content:space-between; padding:1px 6px; font-size:9px; line-height:1; color:var(--text-muted); border-bottom:1px solid rgba(200,155,60,.2); flex: 0 0 auto; }
+  .status-bar{ display:flex; align-items:center; justify-content:space-between; padding:2px 6px; font-size:11px; line-height:1.2; color:var(--text-muted); border-bottom:1px solid rgba(200,155,60,.2); flex: 0 0 auto; }
   .status-bar .who{display:flex; align-items:center; gap:3px; font-weight:700; color:var(--text-light);}
-  .status-bar .badge{ background:rgba(0,0,0,.3); border:1px solid var(--brass-dark); border-radius:4px; padding:1px 4px; font-size:8px; line-height:1.3; }
-  .turn-pill{ padding:2px 6px; border-radius:20px; font-size:8px; font-weight:800; line-height:1.3; }
+  .status-bar .badge{ background:rgba(0,0,0,.3); border:1px solid var(--brass-dark); border-radius:4px; padding:2px 5px; font-size:10px; line-height:1.4; }
+  .turn-pill{ padding:3px 8px; border-radius:20px; font-size:10px; font-weight:800; line-height:1.4; }
   .turn-pill.player{background:var(--olive); color:#eafbe9;}
   .turn-pill.ai{background:var(--brick); color:#fbeae7;}
+  .status-bar .head-actions{ display:flex; align-items:center; gap:4px; }
   .opp-hand-area{ flex:0 0 auto; padding:1px 6px; border-bottom:1px solid rgba(200,155,60,.2); background:rgba(0,0,0,.12); line-height:0; }
   .opp-hand-row{ display:flex; flex-wrap:wrap; gap:2px; justify-content:center; max-height:18px; overflow:hidden; }
   .tile-back{ width:12px; height:18px; border-radius:2px; flex-shrink:0; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 1px 2px rgba(0,0,0,.35); position:relative; }
@@ -144,7 +145,7 @@
   .drag-clone{ background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; border-radius:4px; box-shadow:0 10px 22px rgba(0,0,0,.55), 0 0 0 2px var(--brass-light); }
   .side-picker{ position:absolute; bottom:4px; left:0; right:0; display:flex; direction:ltr; justify-content:center; gap:10px; z-index:8; }
   .side-btn{ background:linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border:1px solid #6e5218; border-radius:20px; padding:6px 14px; font-weight:800; font-size:11px; cursor:pointer; }
-  .icon-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:18px; height:18px; border-radius:50%; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .icon-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:22px; height:22px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .result-card{ margin:auto; max-width:360px; width:100%; background:linear-gradient(160deg, rgba(92,58,33,.44), rgba(42,24,16,.45)); border:2px solid var(--brass-dark); border-radius:8px; padding:28px 22px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.5); backdrop-filter:blur(3px); }
   .result-overlay{ position:absolute; inset:0; z-index:50; display:none; padding:24px 12px; background:rgba(10,6,3,.45); backdrop-filter:blur(1px); }
   .result-overlay.active{ display:flex; }
@@ -372,8 +373,12 @@
   <div class="screen" id="screen-game">
     <div class="game-content">
       <div class="status-bar">
-        <button class="icon-btn" onclick="Nav.openGameMenu()">☰</button>
-        <div class="who">الخصم <span class="badge" id="aiCount">7</span></div>
+        <div class="head-actions">
+          <button class="icon-btn" onclick="Nav.openGameMenu()">☰</button>
+          <button class="icon-btn" id="netUsersBtn" style="display:none;" onclick="NetUI.openUsers()">👤</button>
+          <button class="icon-btn" id="netSurrenderBtn" style="display:none;" onclick="NetUI.confirmSurrender()">🏳️</button>
+        </div>
+        <div class="who"><span id="oppNameLabel">الخصم</span> <span class="badge" id="aiCount">7</span></div>
         <div class="turn-pill" id="turnPill">دورك</div>
         <div class="who">
           <span class="badge" id="scoreBadge" title="نقط الجيم">الجيم: 0 - 0</span>
@@ -404,6 +409,9 @@
       <div class="result-overlay" id="gameMenuOverlay">
         <div class="result-card" id="gameMenuCard"></div>
       </div>
+      <div class="result-overlay" id="netUsersOverlay">
+        <div class="result-card" id="netUsersCard"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -422,7 +430,7 @@ const state = {
 };
 
 const Nav = {
-  go(name){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+name).classList.add('active'); state.screen = name; state.pendingResult = null; document.getElementById('resultOverlay').classList.remove('active'); document.getElementById('gameMenuOverlay').classList.remove('active'); document.getElementById('globalConfirmOverlay').classList.remove('active'); },
+  go(name){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+name).classList.add('active'); state.screen = name; state.pendingResult = null; document.getElementById('resultOverlay').classList.remove('active'); document.getElementById('gameMenuOverlay').classList.remove('active'); document.getElementById('globalConfirmOverlay').classList.remove('active'); const nu=document.getElementById('netUsersOverlay'); if(nu) nu.classList.remove('active'); },
   closeResult(){ state.pendingResult = null; document.getElementById('resultOverlay').classList.remove('active'); },
   newMatch(){
     state.scores.player = 0; state.scores.ai = 0;
@@ -881,6 +889,20 @@ const Round = {
     document.getElementById('resultOverlay').classList.add('active');
     if(!matchTrulyOver){ saveGame(); }
     if(Net.active) Net.hostSync();
+  },
+  // إنهاء فوري خارج تسلسل اللعب العادي - للانسحاب أو طرد اللاعب النشط أثناء ماتش شبكة
+  forceEnd(winnerSeat){
+    state.busy = true;
+    state.lastResult = {
+      winner: winnerSeat, reasonKey: winnerSeat==='player' ? 'win-surrender' : 'lose-surrender',
+      points: 0, pPips: pipSum(state.playerHand), aPips: pipSum(state.aiHand),
+      gameOver: true, gameWinner: winnerSeat, matchTrulyOver: true, wasDecisive: true, decisiveAfter: false
+    };
+    state.gameWins[winnerSeat]++;
+    Render.oppHand(true);
+    Render.buildResultCard();
+    document.getElementById('resultOverlay').classList.add('active');
+    if(Net.active) Net.hostSync();
   }
 };
 
@@ -1279,10 +1301,13 @@ const Render = {
     const pile = document.getElementById('boneyardPile');
     pile.style.visibility = state.phase==='game' && state.boneyard.length>0 ? 'visible' : 'hidden';
     pile.classList.toggle('drawable', state.drawMode && state.turn==='player' && state.boneyard.length>0);
-    document.getElementById('scoreBadge').textContent = `الجيم: أنت ${state.scores.player} - خصم ${state.scores.ai}`;
-    document.getElementById('matchBadge').textContent = `الفورة: أنت ${state.gameWins.player} - خصم ${state.gameWins.ai}`;
+    const meLabel = Net.seatName('player'), oppLabel = Net.seatName('ai');
+    document.getElementById('oppNameLabel').textContent = oppLabel;
+    document.getElementById('scoreBadge').textContent = `الجيم: ${meLabel} ${state.scores.player} - ${oppLabel} ${state.scores.ai}`;
+    document.getElementById('matchBadge').textContent = `الفورة: ${meLabel} ${state.gameWins.player} - ${oppLabel} ${state.gameWins.ai}`;
     const pill = document.getElementById('turnPill');
-    pill.textContent = state.turn==='player' ? 'دورك' : 'دور الخصم';
+    if(Net.active && Net.role==='spectator'){ pill.textContent = `دور ${state.turn==='player' ? meLabel : oppLabel}`; }
+    else { pill.textContent = state.turn==='player' ? 'دورك' : `دور ${oppLabel}`; }
     pill.className = 'turn-pill ' + state.turn;
     const hint = document.getElementById('handHint');
     if(state.phase==='draft') hint.textContent = 'مرحلة التسقي: اختر قطعك من على الطاولة';
@@ -1453,29 +1478,42 @@ const Render = {
       'win-out':['فزت بالجولة! 🎉','أنهيت كل قطعك أولاً'], 'lose-out':['خسرت الجولة','الخصم أنهى قطعه أولاً'],
       'win-block-fewer':['فزت بالغلق! 🎉','معاك قطع أقل عند القفل'], 'lose-block-fewer':['خسرت بالغلق','معاه قطع أقل عند القفل'],
       'win-block-pips':['فزت بالغلق! 🎉','نفس عدد القطع، بس نقطك أقل'], 'lose-block-pips':['خسرت بالغلق','نفس عدد القطع، بس نقطه أقل'],
-      'draw-block':['تعادل!','تساوى العدد والنقط في القفل']
+      'draw-block':['تعادل!','تساوى العدد والنقط في القفل'],
+      'win-surrender':['فزت! الخصم انسحب 🏳️','خصمك خرج من الماتش'], 'lose-surrender':['انسحبت من الماتش','المباراة انتهت']
     };
+    const meLabel = Net.seatName('player'), oppLabel = Net.seatName('ai');
     const [title, sub] = titles[r.reasonKey] || ['',''];
+    let finalTitle = title, finalSub = sub;
+    if(Net.active && Net.role==='spectator'){
+      const winnerName = r.winner==='player' ? Net.seatName('player') : (r.winner==='ai' ? Net.seatName('ai') : null);
+      finalTitle = r.winner==='draw' ? 'تعادل!' : (winnerName ? `${winnerName} فاز! 🎉` : title);
+      const subsNeutral = { 'win-out':'أنهى قطعه أولاً','lose-out':'أنهى قطعه أولاً','win-block-fewer':'قطعه أقل عند القفل','lose-block-fewer':'قطعه أقل عند القفل','win-block-pips':'نقطه أقل عند القفل','lose-block-pips':'نقطه أقل عند القفل','draw-block':'تساوى العدد والنقط في القفل','win-surrender':'الطرف التاني انسحب','lose-surrender':'انسحب من الماتش' };
+      finalSub = subsNeutral[r.reasonKey] || sub;
+    }
     let gameLine='', matchLine='';
+    const spectating = Net.active && Net.role==='spectator';
     if(r.gameOver){
+      const gwName = r.gameWinner==='player' ? meLabel : oppLabel;
       if(r.wasDecisive){
         const mw = r.gameWinner==='player';
-        matchLine = `<h2 style="margin-top:18px;">${mw ? 'مبروك، فزت بالفاصل والمباراة! 🏆' : 'خسرت الفاصل، خسرت المباراة'}</h2>
-          <p class="sub">الجيمات النهائية: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}</p>`;
+        const matchTitle = spectating ? `${gwName} فاز بالفاصل والمباراة! 🏆` : (mw ? 'مبروك، فزت بالفاصل والمباراة! 🏆' : 'خسرت الفاصل، خسرت المباراة');
+        matchLine = `<h2 style="margin-top:18px;">${matchTitle}</h2>
+          <p class="sub">الجيمات النهائية: ${meLabel} ${state.gameWins.player} — ${oppLabel} ${state.gameWins.ai}</p>`;
       } else {
-        gameLine = `<h2 style="margin-top:14px;">${r.gameWinner==='player' ? 'فزت بالجيم! 🎯' : 'خسرت الجيم'}</h2>
-          <p class="sub">الجيمات: أنت ${state.gameWins.player} — الخصم ${state.gameWins.ai}${r.decisiveAfter ? ' — الجيم الجاي هو الفاصل! ⚡' : ''}</p>`;
+        const gameTitle = spectating ? `${gwName} فاز بالجيم! 🎯` : (r.gameWinner==='player' ? 'فزت بالجيم! 🎯' : 'خسرت الجيم');
+        gameLine = `<h2 style="margin-top:14px;">${gameTitle}</h2>
+          <p class="sub">الجيمات: ${meLabel} ${state.gameWins.player} — ${oppLabel} ${state.gameWins.ai}${r.decisiveAfter ? ' — الجيم الجاي هو الفاصل! ⚡' : ''}</p>`;
       }
     }
     const revealTiles = hand => hand.map(t=>`<div class="mini-domino"><div class="half">${pipsHTML(t.a)}</div><div class="half">${pipsHTML(t.b)}</div></div>`).join('');
     const revealHTML = `
       <div class="reveal-hands">
         <div class="reveal-row">
-          <div class="who-label">ورقك (${r.pPips} نقطة)</div>
+          <div class="who-label">ورق ${meLabel} (${r.pPips} نقطة)</div>
           <div class="reveal-tiles">${revealTiles(state.playerHand)}</div>
         </div>
         <div class="reveal-row">
-          <div class="who-label">ورق الخصم (${r.aPips} نقطة)</div>
+          <div class="who-label">ورق ${oppLabel} (${r.aPips} نقطة)</div>
           <div class="reveal-tiles">${revealTiles(state.aiHand)}</div>
         </div>
       </div>`;
@@ -1483,17 +1521,25 @@ const Render = {
     if(Net.active && Net.role!=='host'){
       // الضيف/المتفرج مش هو اللي بيقرر الخطوة الجاية - بننتظر الهوست
       actionsHTML = `<p class="sub" style="margin-top:14px;">بانتظار قرار المضيف...</p>`;
+    } else if(Net.active){
+      // الهوست: دايمًا في خيار "العب مع صديق تاني" بعد ما أي جيم يخلص، فوق الزرار الأساسي
+      const mainBtn = r.matchTrulyOver
+        ? `<button class="plaque-btn primary" onclick="Net.hostStartMatch(Net.peerGuestRef, Net.peerGuestName)">جولة جديدة (نفس اللاعب)</button>`
+        : `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startDraft();">${r.gameOver ? 'الجيم التالي (تسقي)' : 'الجولة التالية (تسقي)'}</button>`;
+      const changeBtn = (r.gameOver && Transport.active==='quick') ? `<button class="plaque-btn" onclick="Net.hostChangePlayer()">العب مع صديق تاني</button>` : '';
+      const hubBtn = r.matchTrulyOver ? `<button class="plaque-btn" onclick="Net.hostPostMatch()">الرجوع لقائمة الماتش</button>` : '';
+      actionsHTML = mainBtn + changeBtn + hubBtn;
     } else {
       actionsHTML = r.matchTrulyOver
-        ? `<button class="plaque-btn primary" onclick="${Net.active ? 'Net.hostPostMatch()' : "Nav.newMatch()"}">${Net.active ? 'الرجوع لقائمة الماتش' : 'مباراة جديدة'}</button>${Net.active ? '' : `<button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`}`
-        : `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startDraft();">${r.gameOver ? 'الجيم التالي (تسقي)' : 'الجولة التالية (تسقي)'}</button>${Net.active ? '' : `<button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`}`;
+        ? `<button class="plaque-btn primary" onclick="Nav.newMatch()">مباراة جديدة</button><button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`
+        : `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startDraft();">${r.gameOver ? 'الجيم التالي (تسقي)' : 'الجولة التالية (تسقي)'}</button><button class="plaque-btn" onclick="Nav.go('menu')">القائمة الرئيسية</button>`;
     }
     const card = document.getElementById('resultCard');
     card.innerHTML = `
-      <h2>${title}</h2>
-      <p class="sub">${sub}${r.points?` — ${r.points} نقطة`:''}</p>
-      <div class="score-line"><span>أنت</span><b>${state.scores.player}</b></div>
-      <div class="score-line"><span>الخصم</span><b>${state.scores.ai}</b></div>
+      <h2>${finalTitle}</h2>
+      <p class="sub">${finalSub}${r.points?` — ${r.points} نقطة`:''}</p>
+      <div class="score-line"><span>${meLabel}</span><b>${state.scores.player}</b></div>
+      <div class="score-line"><span>${oppLabel}</span><b>${state.scores.ai}</b></div>
       ${revealHTML}
       ${gameLine}
       ${matchLine}
@@ -1560,7 +1606,7 @@ const QMP = {
   // الهوست بيستخدمها لما اللاعب المختار يقبل الدعوة
   startWithChosen(chosenGuest){
     this.guests.forEach((g) => {
-      g.conn.send({ type: 'start-game', role: g === chosenGuest ? 'player' : 'spectator' });
+      g.conn.send({ type: 'start-game', role: g === chosenGuest ? 'player' : 'spectator', hostName: Lobby.myName, guestName: chosenGuest.name });
     });
   },
 
@@ -1693,7 +1739,7 @@ const Lobby = {
   handleGuestMessage(data){
     if (data.type === 'lobby-update') { this.guestApplyUpdate(data.participants); }
     else if (data.type === 'invite') { MPUI.showIncomingInvite(data.from); }
-    else if (data.type === 'start-game') { MPUI.onGameStart(data.role); }
+    else if (data.type === 'start-game') { MPUI.onGameStart(data.role, data.hostName, data.guestName); }
     else if (data.type === 'kicked') { this.wasKicked = true; }
     else if (data.type === 'game-state') { Net.applyIncomingState(data.state); }
     else if (data.type === 'game-ended') { MPUI.onGameEnded(); }
@@ -1790,7 +1836,29 @@ const Net = {
   active: false,        // فورة شبكة فعلية شغالة دلوقتي (مش مجرد لوبي)
   role: null,           // 'host' | 'guest' | 'spectator'
   peerGuestRef: null,   // للهوست بس: مرجع الضيف اللي بيلعب معاه (null في الطريقة اليدوية - شخص واحد بس)
-  peerGuestName: '',    // للهوست بس: اسم اللاعب المختار، لعرضه تاني في زرار "جولة جديدة"
+  peerGuestName: '',    // اسم اللاعب اللي بيلعب (مش الهوست) - معروف عند الكل (هوست/ضيف/متفرج)
+  hostName: '',         // اسم الهوست - معروف عند الضيف والمتفرج
+
+  myName(){ return Lobby.myName || 'أنا'; },
+  opponentName(){
+    if(this.role==='host') return this.peerGuestName || 'صاحبك';
+    if(this.role==='guest') return this.hostName || 'الهوست';
+    return 'الخصم';
+  },
+  // اسم "المقعد" ده بمنظوري أنا (بعد أي تحويل منظور حصل للضيف بالفعل في applyIncomingState)
+  seatName(seat){
+    if(!this.active) return seat==='player' ? 'أنت' : 'الخصم';
+    if(this.role==='spectator') return seat==='player' ? (this.hostName||'الهوست') : (this.peerGuestName||'اللاعب');
+    return seat==='player' ? this.myName() : this.opponentName();
+  },
+  showGameButtons(){
+    const u = document.getElementById('netUsersBtn'); if(u) u.style.display='flex';
+    const s = document.getElementById('netSurrenderBtn'); if(s) s.style.display = (this.role==='spectator') ? 'none' : 'flex';
+  },
+  hideGameButtons(){
+    const u = document.getElementById('netUsersBtn'); if(u) u.style.display='none';
+    const s = document.getElementById('netSurrenderBtn'); if(s) s.style.display='none';
+  },
 
   sendAction(kind, payload){ Transport.send(Object.assign({ type:'game-action', kind }, payload)); },
 
@@ -1819,7 +1887,7 @@ const Net = {
         const r = s.lastResult;
         r.winner = r.winner==='player' ? 'ai' : (r.winner==='ai' ? 'player' : r.winner);
         r.gameWinner = r.gameWinner==='player' ? 'ai' : (r.gameWinner==='ai' ? 'player' : r.gameWinner);
-        const flip = { 'win-out':'lose-out','lose-out':'win-out','win-block-fewer':'lose-block-fewer','lose-block-fewer':'win-block-fewer','win-block-pips':'lose-block-pips','lose-block-pips':'win-block-pips','draw-block':'draw-block' };
+        const flip = { 'win-out':'lose-out','lose-out':'win-out','win-block-fewer':'lose-block-fewer','lose-block-fewer':'win-block-fewer','win-block-pips':'lose-block-pips','lose-block-pips':'win-block-pips','draw-block':'draw-block','win-surrender':'lose-surrender','lose-surrender':'win-surrender' };
         r.reasonKey = flip[r.reasonKey] || r.reasonKey;
       }
       Object.assign(state, s);
@@ -1846,14 +1914,17 @@ const Net = {
     if(data.kind==='draftPick') Game.pickDraftTile(data.idx, 'ai');
     else if(data.kind==='play') Game.play(data.idx, data.side, 'ai');
     else if(data.kind==='draw') Game.drawFromPile(data.side, 'ai');
+    else if(data.kind==='surrender') Round.forceEnd('player'); // الضيف انسحب - الهوست (player) يكسب
   },
 
-  hostStartMatch(guestRef){
+  hostStartMatch(guestRef, guestName){
     this.active = true; this.role = 'host'; this.peerGuestRef = guestRef;
+    this.peerGuestName = guestName || this.peerGuestName || 'صاحبك';
+    this.showGameButtons();
     Nav.newMatch();
   },
-  guestEnterMatch(){ this.active = true; this.role = 'guest'; Nav.go('game'); },
-  spectatorEnterMatch(){ this.active = true; this.role = 'spectator'; Nav.go('game'); },
+  guestEnterMatch(){ this.active = true; this.role = 'guest'; this.showGameButtons(); Nav.go('game'); },
+  spectatorEnterMatch(){ this.active = true; this.role = 'spectator'; this.showGameButtons(); Nav.go('game'); },
 
   // الهوست بعد ما الماتش يخلص خالص - يرجع لقائمة الماتش (جولة جديدة / غيّر اللاعب)
   hostPostMatch(){
@@ -1861,10 +1932,69 @@ const Net = {
     if(Transport.active==='quick') QMP.broadcast({ type:'game-ended' });
     else Transport.send({ type:'game-ended' });
     this.active = false;
+    this.hideGameButtons();
     Nav.go('mp');
     MPUI.show('mp-match-hub');
   },
-  reset(){ this.active = false; this.role = null; this.peerGuestRef = null; }
+  // الهوست عايز يلعب مع حد تاني (بعد ما جيم يخلص أو الماتش كله يخلص) - يصفّر كل حاجة ويوريه قائمة يختار منها
+  hostChangePlayer(){
+    Nav.closeResult();
+    if(Transport.active==='quick') QMP.broadcast({ type:'game-ended' });
+    else Transport.send({ type:'game-ended' });
+    this.active = false;
+    this.hideGameButtons();
+    Nav.go('mp');
+    MPUI.showChoosePlayer();
+  },
+  reset(){ this.active = false; this.role = null; this.peerGuestRef = null; this.hideGameButtons(); }
+};
+
+// ==================== أزرار الشبكة جوه شاشة اللعب (المتصلين / الانسحاب) ====================
+const NetUI = {
+  openUsers(){
+    const card = document.getElementById('netUsersCard');
+    const isHost = Net.role==='host';
+    let rows;
+    if(Transport.active==='quick'){
+      const list = Lobby.participants;
+      rows = list.map(p=>{
+        const clickable = isHost && !p.isHost;
+        const safe = p.name.replace(/'/g,"\\'");
+        return `<button class="plaque-btn ${clickable?'':'primary'}" style="width:100%; margin-bottom:8px;" ${clickable?`onclick="NetUI.kick('${safe}')"`:'disabled'}>${p.name}${p.isHost?' (الهوست)':''}${clickable?' — دوس للطرد':''}</button>`;
+      }).join('') || '<p class="sub">مفيش حد متصل</p>';
+    } else {
+      rows = `<button class="plaque-btn primary" style="width:100%; margin-bottom:8px;" disabled>${Net.myName()}</button>
+        <button class="plaque-btn primary" style="width:100%;" disabled>${Net.opponentName()}</button>`;
+    }
+    card.innerHTML = `<h2 style="margin-bottom:14px;">المتصلين في السيرفر</h2>${rows}<div class="result-actions"><button class="plaque-btn" onclick="NetUI.closeUsers()">رجوع</button></div>`;
+    document.getElementById('netUsersOverlay').classList.add('active');
+  },
+  closeUsers(){ document.getElementById('netUsersOverlay').classList.remove('active'); },
+  kick(name){
+    const p = Lobby.participants.find(p=>p.name===name && !p.isHost);
+    if(!p || !p.guestRef) return;
+    const wasActivePlayer = Net.peerGuestRef === p.guestRef;
+    QMP.kickGuest(p.guestRef);
+    Lobby.hostRemoveGuest(p.guestRef);
+    NetUI.closeUsers();
+    Toast.show('اتطرد ' + name);
+    if(wasActivePlayer && Net.active){ Round.forceEnd('player'); }
+  },
+  confirmSurrender(){
+    document.getElementById('gameMenuCard').innerHTML = `
+      <h2 style="margin-bottom:10px;">تأكيد الانسحاب</h2>
+      <p class="sub">هتنسحب من الماتش وهيتحسب فوز فوري لـ${Net.opponentName()}. متأكد؟</p>
+      <div class="result-actions">
+        <button class="plaque-btn primary" style="background:#5c2318;" onclick="Nav.closeGameMenu(); NetUI.doSurrender();">انسحب</button>
+        <button class="plaque-btn" onclick="Nav.closeGameMenu()">رجوع</button>
+      </div>`;
+    document.getElementById('gameMenuOverlay').classList.add('active');
+  },
+  doSurrender(){
+    if(!Net.active) return;
+    if(Net.role==='guest'){ Net.sendAction('surrender', {}); return; }
+    if(Net.role==='host'){ Round.forceEnd('ai'); } // الهوست هو اللي بينسحب - المقعد التاني (صاحبه) يكسب
+  }
 };
 
 const MPUI = {
@@ -1940,6 +2070,7 @@ const MPUI = {
 
   // ============ الطريقة اليدوية (شخصين بس، من غير لوبي) ============
   async useManualHost(){
+    const myName = document.getElementById('mp-host-my-name').value.trim() || 'الهوست';
     const name = document.getElementById('mp-host-name').value.trim() || 'سيرفر بدون اسم';
     const pass = document.getElementById('mp-host-pass').value.trim();
     document.getElementById('mp-offer-code').value = 'بنجهز الكود... لحظة';
@@ -1949,6 +2080,7 @@ const MPUI = {
       document.getElementById('mp-offer-code').value = code;
       this.mode = 'manual';
       Transport.active = 'manual';
+      Lobby.hostInit(myName, name, pass);
       MP.onOpen = () => { this.enterManualLobby(true); };
     }catch(err){
       document.getElementById('mp-host-status').textContent = 'حصل خطأ، جرب تاني';
@@ -1976,6 +2108,7 @@ const MPUI = {
   async joinServerManual(){
     const code = document.getElementById('mp-join-offer').value;
     const pass = document.getElementById('mp-join-pass').value.trim();
+    const myName = (document.getElementById('mp-my-name').value || '').trim() || 'أنا';
     const errEl = document.getElementById('mp-join-manual-error');
     errEl.textContent = '';
     if (!code.trim()) { errEl.textContent = 'الصق كود السيرفر الأول'; return; }
@@ -1984,6 +2117,7 @@ const MPUI = {
       document.getElementById('mp-answer-out').value = answer;
       this.mode = 'manual';
       Transport.active = 'manual';
+      Lobby.guestInit(myName, '', pass);
       MP.onOpen = () => { this.enterManualLobby(false); };
       this.show('mp-join-wait');
     }catch(err){
@@ -1996,13 +2130,28 @@ const MPUI = {
     document.getElementById('mp-lobby-list').innerHTML = '';
     document.getElementById('mp-my-ready-btn').style.display = 'none';
     document.getElementById('mp-lobby-note').textContent = '';
+    // تبادل الأسماء مرة واحدة (مفيش نظام لوبي كامل في الطريقة اليدوية زي السريعة)
+    MP.send({ type:'hello', name: Lobby.myName });
     if (isHost) {
       document.getElementById('mp-start-btn').style.display = '';
-      document.getElementById('mp-start-btn').onclick = () => { MP.send({type:'start-game', role:'player'}); this.onMatchStarted('صاحبك'); };
+      document.getElementById('mp-start-btn').onclick = () => {
+        const gName = Net.peerGuestName || 'صاحبك';
+        MP.send({ type:'start-game', role:'player', hostName: Lobby.myName, guestName: gName });
+        this.onMatchStarted(gName, null);
+      };
+      MP.onData = (data) => {
+        if (data.type === 'hello') { Net.peerGuestName = data.name || 'صاحبك'; }
+        else if (data.type === 'game-action') { Net.handleAction(data, null); }
+      };
     } else {
       document.getElementById('mp-start-btn').style.display = 'none';
       document.getElementById('mp-lobby-note').textContent = 'في انتظار صاحبك يبدأ اللعبة...';
-      MP.onData = (data) => { if (data.type === 'start-game') this.onGameStart(data.role); };
+      MP.onData = (data) => {
+        if (data.type === 'hello') { Net.hostName = data.name || 'الهوست'; }
+        else if (data.type === 'start-game') { this.onGameStart(data.role, data.hostName, data.guestName); }
+        else if (data.type === 'game-state') { Net.applyIncomingState(data.state); }
+        else if (data.type === 'game-ended') { this.onGameEnded(); }
+      };
     }
   },
 
@@ -2093,10 +2242,12 @@ const MPUI = {
 
   onMatchStarted(playerName, guestRef){
     Toast.show(`بدأت اللعبة مع ${playerName} 🎉`);
-    Net.hostStartMatch(guestRef || null);
+    Net.hostStartMatch(guestRef || null, playerName);
   },
 
-  onGameStart(role){
+  onGameStart(role, hostName, guestName){
+    Net.hostName = hostName || 'الهوست';
+    Net.peerGuestName = guestName || Net.peerGuestName || '';
     Toast.show(role === 'player' ? 'دورك تلعب 🎮' : 'هتتفرج على اللعبة 👀');
     if(role === 'player') Net.guestEnterMatch();
     else Net.spectatorEnterMatch();
@@ -2107,13 +2258,12 @@ const MPUI = {
     Net.reset();
     Nav.go('mp');
     this.show('mp-lobby');
-    if(Lobby.isHost || Lobby.myName) this.renderLobby();
-    Toast.show('الماتش خلص، استنى دعوة تانية 🎲');
+    this.renderLobby();
+    Toast.show('الماتش خلص 🎲');
   },
 
   rematch(){
-    if(!Net.peerGuestRef && Transport.active==='quick'){ Toast.show('اللاعب ده مش متصل دلوقتي'); return; }
-    MPUI.onMatchStarted(Lobby.isHost ? (Lobby.participants.find(p=>p.guestRef===Net.peerGuestRef)||{}).name || 'صاحبك' : 'صاحبك', Net.peerGuestRef);
+    Net.hostStartMatch(Net.peerGuestRef, Net.peerGuestName);
   },
   changePlayer(){
     Net.peerGuestRef = null;
