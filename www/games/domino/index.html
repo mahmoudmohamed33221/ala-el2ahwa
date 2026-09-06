@@ -45,7 +45,7 @@
   .plaque-btn .ic{font-size:19px;}
   .subpage-head{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
   .back-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:38px; height:38px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .subpage-title{ font-family:'Amiri', serif; font-size:26px; color:var(--brass-light); margin:0; }
+  .subpage-title{ font-family:'Amiri', serif; font-size:26px; color:var(--brass-light); margin:0; flex:1; }
   .content-block{ background:rgba(0,0,0,.18); border:1px solid rgba(200,155,60,.25); border-radius:6px; padding:16px 16px; margin-bottom:14px; line-height:2; font-size:15px; color:var(--text-light); }
   .content-block h3{margin:0 0 8px; color:var(--brass-light); font-size:16px;}
   .content-block p{margin:0 0 8px;}
@@ -71,6 +71,13 @@
   .turn-pill.player{background:var(--olive); color:#eafbe9;}
   .turn-pill.ai{background:var(--brick); color:#fbeae7;}
   .status-bar .head-actions{ display:flex; align-items:center; gap:4px; }
+  .mic-indicator{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; font-size:15px; border-radius:50%; background:rgba(0,0,0,.25); border:1px solid var(--brass-dark); cursor:default; }
+  .mic-indicator.clickable{ cursor:pointer; }
+  .mic-indicator.muted-host::after, .mic-indicator.muted-self::after{ content:''; position:absolute; left:3px; right:3px; top:50%; height:2px; transform:rotate(-45deg); border-radius:2px; }
+  .mic-indicator.muted-host::after{ background:#e0473a; }
+  .mic-indicator.muted-self::after{ background:#fff; }
+  .user-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-bottom:8px; }
+  .user-row .name-btn{ flex:1; }
   .opp-hand-area{ flex:0 0 auto; padding:1px 6px; border-bottom:1px solid rgba(200,155,60,.2); background:rgba(0,0,0,.12); line-height:0; }
   .opp-hand-row{ display:flex; flex-wrap:wrap; gap:2px; justify-content:center; max-height:18px; overflow:hidden; }
   .tile-back{ width:12px; height:18px; border-radius:2px; flex-shrink:0; background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 1px 2px rgba(0,0,0,.35); position:relative; }
@@ -145,7 +152,7 @@
   .drag-clone{ background:linear-gradient(155deg, #fffdf7 0%, #f3ead2 55%, #e6d9ba 100%); border:1px solid #c9b98f; border-radius:4px; box-shadow:0 10px 22px rgba(0,0,0,.55), 0 0 0 2px var(--brass-light); }
   .side-picker{ position:absolute; bottom:4px; left:0; right:0; display:flex; direction:ltr; justify-content:center; gap:10px; z-index:8; }
   .side-btn{ background:linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border:1px solid #6e5218; border-radius:20px; padding:6px 14px; font-weight:800; font-size:11px; cursor:pointer; }
-  .icon-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:22px; height:22px; border-radius:50%; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .icon-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .result-card{ margin:auto; max-width:360px; width:100%; background:linear-gradient(160deg, rgba(92,58,33,.44), rgba(42,24,16,.45)); border:2px solid var(--brass-dark); border-radius:8px; padding:28px 22px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.5); backdrop-filter:blur(3px); }
   .result-overlay{ position:absolute; inset:0; z-index:50; display:none; padding:24px 12px; background:rgba(10,6,3,.45); backdrop-filter:blur(1px); }
   .result-overlay.active{ display:flex; }
@@ -158,8 +165,8 @@
   .reveal-tiles .mini-domino .half + .half{ border-top:1px solid #c9b98f; }
   .reveal-tiles .mini-domino::before{ content:''; position:absolute; left:8%; right:8%; top:50%; height:2px; margin-top:-1px; border-radius:2px; background:linear-gradient(90deg, #362c1f 0%, #0c0a07 50%, #362c1f 100%); box-shadow:0 0 1px rgba(0,0,0,.6); }
   .reveal-tiles .mini-domino::after{ content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:4px; height:4px; border-radius:50%; z-index:2; background:radial-gradient(circle at 35% 30%, #fff6d8 0%, #d9b54c 55%, #8a6a1c 100%); box-shadow:0 1px 1px rgba(0,0,0,.55), inset 0 0 1px rgba(255,255,255,.8); }
-  .result-card h2{ font-family:'Amiri', serif; font-size:28px; margin:0 0 6px; color:var(--brass-light); }
-  .result-card .sub{font-size:14px; color:var(--text-muted); margin:0 0 18px;}
+  .result-card h2{ font-family:'Amiri', serif; font-size:32px; margin:0 0 8px; color:var(--brass-light); }
+  .result-card .sub{font-size:16px; color:var(--text-muted); margin:0 0 18px;}
   .score-line{display:flex; justify-content:space-between; padding:8px 4px; font-size:15px; border-top:1px solid rgba(200,155,60,.2);}
   .score-line b{color:var(--text-light);}
   .result-actions{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
@@ -209,6 +216,10 @@
       <div class="subpage-head">
         <button class="back-btn" onclick="MPUI.back()">→</button>
         <h2 class="subpage-title">العب مع صاحبك</h2>
+        <div class="head-actions" id="mpVoiceBar" style="display:none;">
+          <button class="icon-btn" onclick="NetUI.openUsers()">👤</button>
+          <button class="icon-btn mic-btn" onclick="Voice.toggleMic()">🎤</button>
+        </div>
       </div>
 
       <div id="mp-choice">
@@ -376,6 +387,7 @@
         <div class="head-actions">
           <button class="icon-btn" onclick="Nav.openGameMenu()">☰</button>
           <button class="icon-btn" id="netUsersBtn" style="display:none;" onclick="NetUI.openUsers()">👤</button>
+          <button class="icon-btn mic-btn" id="netMicBtn" style="display:none;" onclick="Voice.toggleMic()">🎤</button>
           <button class="icon-btn" id="netSurrenderBtn" style="display:none;" onclick="NetUI.confirmSurrender()">🏳️</button>
         </div>
         <div class="who"><span id="oppNameLabel">الخصم</span> <span class="badge" id="aiCount">7</span></div>
@@ -715,6 +727,7 @@ const Game = {
     seat = seat || 'player';
     if (Net.active && Net.role === 'guest' && seat === 'player') {
       if (state.busy) return;
+      Render.sidePicker(null); // نقفل قائمة اختيار الجهة عندي فورًا - مش لازم ننتظر رد الهوست عشان نخفيها
       Net.sendAction('play', { idx, side });
       return;
     }
@@ -745,7 +758,7 @@ const Game = {
     if(hand.length===0){ Round.end(seat,'out'); return; }
     if(isDeadEnd()){ Round.end(null,'blocked'); return; }
     const next = otherSeat(seat);
-    state.turn = next; Render.all();
+    state.turn = next; state.busy = false; Render.all();
     if(Net.active){
       Net.hostSync();
       checkTurnStart(next);
@@ -1576,6 +1589,7 @@ const QMP = {
       let settled = false;
       const timer = setTimeout(() => { if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 7000);
       this.peer.on('open', () => { if(!settled){ settled=true; clearTimeout(timer); resolve(); } });
+      this.peer.on('call', (call) => { Voice.answerIncoming(call); });
       this.peer.on('error', (err) => {
         if(!settled){ settled=true; clearTimeout(timer);
           reject(new Error(err && err.type === 'unavailable-id' ? 'NAME_TAKEN' : 'NETWORK')); }
@@ -1626,6 +1640,7 @@ const QMP = {
       this.peer = new Peer();
       let settled = false;
       const timer = setTimeout(() => { if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 7000);
+      this.peer.on('call', (call) => { Voice.answerIncoming(call); });
       this.peer.on('open', () => {
         this.conn = this.peer.connect(id, { reliable: true });
         this.conn.on('open', () => { this.conn.send({ type: 'auth', pass: password || '', name: myName || '' }); });
@@ -1670,10 +1685,28 @@ const Lobby = {
   hostAddGuest(guest){
     this.participants.push({ name: guest.name, ready: false, isHost: false, guestRef: guest });
     this.hostBroadcast();
+    // لو في ماتش شغال دلوقتي، اللي بيدخل جديد يتفرج عليه على طول - وإن كان نفس اسم اللاعب
+    // النشط اللي كان قاطع، يرجعله مكانه بدل ما يتفرج (إعادة اتصال بنفس الاسم)
+    if(Net.active && Net.role==='host'){
+      const isReturningPlayer = guest.name === Net.peerGuestName;
+      if(isReturningPlayer){
+        Net.peerGuestRef = guest;
+        QMP.sendTo(guest, { type:'start-game', role:'player', hostName: Lobby.myName, guestName: guest.name });
+        Toast.show(guest.name + ' رجع تاني 🎉');
+      } else {
+        QMP.sendTo(guest, { type:'start-game', role:'spectator', hostName: Lobby.myName, guestName: Net.peerGuestName });
+      }
+      try{ QMP.sendTo(guest, { type:'game-state', state: JSON.stringify(state) }); }catch(e){}
+    }
   },
   hostRemoveGuest(guest){
+    const wasActivePlayer = Net.active && Net.role==='host' && Net.peerGuestRef === guest;
     this.participants = this.participants.filter(p => p.guestRef !== guest);
     this.hostBroadcast();
+    if(wasActivePlayer){
+      // منقفلش الماتش خالص - بنستنى يرجع بنفس الاسم (الحالة كلها متحفوظة زي ما هي)
+      Toast.show(`الاتصال بـ${Net.peerGuestName || 'صاحبك'} اتقطع، في انتظار رجوعه... 📡`);
+    }
   },
   hostKick(guest){
     QMP.kickGuest(guest);
@@ -1690,8 +1723,12 @@ const Lobby = {
     this.hostBroadcast();
   },
   hostBroadcast(){
-    QMP.broadcast({ type: 'lobby-update', participants: this.participants.map(p => ({ name: p.name, ready: p.ready, isHost: p.isHost })) });
+    QMP.broadcast({ type: 'lobby-update', participants: this.participants.map(p => ({
+      name: p.name, ready: p.ready, isHost: p.isHost,
+      peerId: p.isHost ? (QMP.peer && QMP.peer.id) : (p.guestRef && p.guestRef.conn && p.guestRef.conn.peer)
+    })) });
     MPUI.renderLobby();
+    Voice.ensureMesh();
   },
   allReady(){ return this.participants.length >= 2 && this.participants.every(p => p.ready); },
 
@@ -1700,7 +1737,7 @@ const Lobby = {
     this.roomName = roomName; this.roomPassword = roomPassword || '';
     this.participants = []; this.wasKicked = false;
   },
-  guestApplyUpdate(list){ this.participants = list; MPUI.renderLobby(); },
+  guestApplyUpdate(list){ this.participants = list; MPUI.renderLobby(); Voice.ensureMesh(); },
   guestToggleReady(){
     this.myReady = !this.myReady;
     QMP.send({ type: 'ready-toggle', ready: this.myReady });
@@ -1710,6 +1747,7 @@ const Lobby = {
   // اللي هيصبح هوست هو أول ضيف في آخر قايمة معروفة (غير نفسي لو كنت أنا الهوست الأصلي أصلاً)
   handleDisconnected(){
     if (this.wasKicked) { MPUI.onKicked(); return; }
+    Toast.show('الاتصال اتقطع، بنحاول نرجعك تاني... 📡');
     const others = this.participants.filter(p => !p.isHost);
     const iAmNext = others.length > 0 && others[0].name === this.myName;
     if (iAmNext) {
@@ -1734,6 +1772,7 @@ const Lobby = {
         MPUI.showChoosePlayer();
       }
     } else if (data.type === 'game-action') { Net.handleAction(data, guest); }
+    else if (data.type === 'voice-self') { Voice.handleVoiceMessage(data, guest); }
   },
 
   handleGuestMessage(data){
@@ -1743,6 +1782,7 @@ const Lobby = {
     else if (data.type === 'kicked') { this.wasKicked = true; }
     else if (data.type === 'game-state') { Net.applyIncomingState(data.state); }
     else if (data.type === 'game-ended') { MPUI.onGameEnded(); }
+    else if (data.type === 'voice-state') { Voice.applyIncomingStates(data.states); }
   }
 };
 
@@ -1775,6 +1815,7 @@ const MP = {
   _wireChannel(){
     this.channel.onopen = () => { if (this.onOpen) this.onOpen(); };
     this.channel.onmessage = (e) => { if (this.onData) this.onData(JSON.parse(e.data)); };
+    this.channel.onclose = () => { Toast.show('الاتصال اتقطع 📡 - الطريقة اليدوية معندهاش إعادة اتصال تلقائية، هتحتاجوا تعملوا الأكواد تاني'); };
   },
 
   async createServer(name, password){
@@ -1854,23 +1895,28 @@ const Net = {
   showGameButtons(){
     const u = document.getElementById('netUsersBtn'); if(u) u.style.display='flex';
     const s = document.getElementById('netSurrenderBtn'); if(s) s.style.display = (this.role==='spectator') ? 'none' : 'flex';
+    const m = document.getElementById('netMicBtn'); if(m) m.style.display='flex';
   },
   hideGameButtons(){
     const u = document.getElementById('netUsersBtn'); if(u) u.style.display='none';
     const s = document.getElementById('netSurrenderBtn'); if(s) s.style.display='none';
+    const m = document.getElementById('netMicBtn'); if(m) m.style.display='none';
   },
 
   sendAction(kind, payload){ Transport.send(Object.assign({ type:'game-action', kind }, payload)); },
 
   hostSync(){
     if(this.role!=='host') return;
-    const snapshot = JSON.stringify(state);
-    if(Transport.active==='quick') QMP.broadcast({ type:'game-state', state: snapshot });
-    else Transport.send({ type:'game-state', state: snapshot });
+    try{
+      const snapshot = JSON.stringify(state);
+      if(Transport.active==='quick') QMP.broadcast({ type:'game-state', state: snapshot });
+      else Transport.send({ type:'game-state', state: snapshot });
+    }catch(e){ console.error('hostSync failed', e); }
   },
 
   // بتوصل من الهوست لصاحبه/للمتفرجين - نسخة كاملة من حالة اللعبة عند الهوست
   applyIncomingState(raw){
+    try{
     let s; try{ s = JSON.parse(raw); }catch(e){ return; }
     if(this.role==='spectator'){
       Object.assign(state, s);
@@ -1893,12 +1939,13 @@ const Net = {
       Object.assign(state, s);
     } else { return; }
     this.renderCurrentPhase();
+    }catch(e){ console.error('applyIncomingState failed', e); }
   },
 
   renderCurrentPhase(){
     if(state.screen!=='game') return;
-    if(state.phase==='draft'){ Render.draft(); Render.hand(); Render.status(); Render.oppHand(); }
-    else if(state.phase==='game'){ Render.all(); }
+    if(state.phase==='draft'){ Render.draft(); Render.hand(); Render.status(); Render.oppHand(this.role==='spectator'); }
+    else if(state.phase==='game'){ Render.all(); if(this.role==='spectator') Render.oppHand(true); }
     if(state.pendingResult){
       if(this.role!=='host') Render.buildResultCard(); // نعيد بناء الكارت بمنظوري أنا مش منظور الهوست
       document.getElementById('resultOverlay').classList.add('active');
@@ -1953,18 +2000,26 @@ const Net = {
 const NetUI = {
   openUsers(){
     const card = document.getElementById('netUsersCard');
-    const isHost = Net.role==='host';
+    const isHost = Net.role==='host' || Lobby.isHost;
     let rows;
+    const micRow = (name, canKick) => {
+      const st = Voice.states[name] || {selfMuted:false, hostMuted:false};
+      const isMe = name === Lobby.myName;
+      const micClickable = isMe || isHost;
+      const micClass = st.hostMuted ? 'muted-host' : (st.selfMuted ? 'muted-self' : '');
+      const micIcon = Voice.micOn && isMe ? (st.selfMuted||st.hostMuted ? '🔇' : '🎙️') : '🎤';
+      const micAction = isMe ? `Voice.requestSelfMuteToggle()` : (isHost ? `Voice.hostToggleMute('${name.replace(/'/g,"\\'")}')` : '');
+      const safe = name.replace(/'/g,"\\'");
+      return `<div class="user-row">
+        <button class="plaque-btn ${canKick?'':'primary'} name-btn" ${canKick?`onclick="NetUI.kick('${safe}')"`:'disabled'}>${name}${isMe?' (أنا)':''}${canKick?' — دوس للطرد':''}</button>
+        <span class="mic-indicator ${micClass} ${micClickable?'clickable':''}" ${micClickable?`onclick="${micAction}"`:''}>${micIcon}</span>
+      </div>`;
+    };
     if(Transport.active==='quick'){
       const list = Lobby.participants;
-      rows = list.map(p=>{
-        const clickable = isHost && !p.isHost;
-        const safe = p.name.replace(/'/g,"\\'");
-        return `<button class="plaque-btn ${clickable?'':'primary'}" style="width:100%; margin-bottom:8px;" ${clickable?`onclick="NetUI.kick('${safe}')"`:'disabled'}>${p.name}${p.isHost?' (الهوست)':''}${clickable?' — دوس للطرد':''}</button>`;
-      }).join('') || '<p class="sub">مفيش حد متصل</p>';
+      rows = list.map(p => micRow(p.name, isHost && !p.isHost)).join('') || '<p class="sub">مفيش حد متصل</p>';
     } else {
-      rows = `<button class="plaque-btn primary" style="width:100%; margin-bottom:8px;" disabled>${Net.myName()}</button>
-        <button class="plaque-btn primary" style="width:100%;" disabled>${Net.opponentName()}</button>`;
+      rows = micRow(Net.myName(), false) + micRow(Net.opponentName(), false);
     }
     card.innerHTML = `<h2 style="margin-bottom:14px;">المتصلين في السيرفر</h2>${rows}<div class="result-actions"><button class="plaque-btn" onclick="NetUI.closeUsers()">رجوع</button></div>`;
     document.getElementById('netUsersOverlay').classList.add('active');
@@ -1997,6 +2052,137 @@ const NetUI = {
   }
 };
 
+// ==================== نظام الصوت (مايك لايف بين كل المتصلين في السيرفر - مش مرتبط بالماتش نفسه) ====================
+// شغال بالطريقة السريعة (PeerJS) بس دلوقتي: كل واحد بيكلم كل واحد تاني مباشرة بالـpeer id
+// بتاعه (ميش)، مش بس الهوست - عشان كل العيلة تقدر تتكلم مع بعض حتى وهم بيتفرجوا
+const Voice = {
+  localStream: null,
+  calls: {},   // peerId -> MediaConnection
+  audios: {},  // peerId -> <audio> بيشغل صوت الطرف التاني
+  states: {},  // name -> {selfMuted, hostMuted}
+  micOn: false,
+
+  showBar(){ const b = document.getElementById('mpVoiceBar'); if(b) b.style.display='flex'; },
+  hideBar(){ const b = document.getElementById('mpVoiceBar'); if(b) b.style.display='none'; },
+
+  myState(){ return this.states[Lobby.myName] || { selfMuted:false, hostMuted:false }; },
+  isMutedNow(name){ const s = this.states[name]; return !!(s && (s.selfMuted || s.hostMuted)); },
+
+  async toggleMic(){
+    if(Transport.active==='manual'){ Toast.show('الصوت متاح دلوقتي في وضع "السيرفر السريع" بس'); return; }
+    if(!Transport.active){ return; }
+    if(!this.localStream){
+      try{
+        this.localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+      }catch(e){ Toast.show('معرفناش نوصل للمايك - افتح إذن المايك للمتصفح 🎙️'); return; }
+      this.micOn = true;
+      this.applyLocalMuteFlag();
+      this.ensureMesh();
+      this.updateButtons();
+      Toast.show('المايك اتفتح 🎤');
+    } else {
+      this.requestSelfMuteToggle();
+    }
+  },
+
+  requestSelfMuteToggle(){
+    const mine = this.myState();
+    if(mine.hostMuted){ Toast.show('الهوست كاتم صوتك - مينفعش تفكه إلا هو'); return; }
+    const newMuted = !mine.selfMuted;
+    if(Lobby.isHost){ this._hostSetState(Lobby.myName, { selfMuted:newMuted }); }
+    else { Transport.send({ type:'voice-self', muted:newMuted }); }
+  },
+  // الهوست بس بيقدر يستخدمها - كتم/فك كتم أي حد تاني إجباري
+  hostToggleMute(name){
+    if(!Lobby.isHost) return;
+    const cur = this.states[name] || {selfMuted:false, hostMuted:false};
+    this._hostSetState(name, { hostMuted: !cur.hostMuted });
+  },
+
+  // بيوصل للهوست بس - طلب فك/كتم كتم ذاتي من ضيف
+  handleVoiceMessage(data, guest){
+    if(!Lobby.isHost) return;
+    if(data.type==='voice-self'){
+      const p = Lobby.participants.find(p=>p.guestRef===guest);
+      if(!p) return;
+      const cur = this.states[p.name] || {selfMuted:false, hostMuted:false};
+      if(cur.hostMuted) return; // مينفعش يفك نفسه لو الهوست كاتمه
+      this._hostSetState(p.name, { selfMuted: !!data.muted });
+    }
+  },
+  _hostSetState(name, patch){
+    const cur = this.states[name] || {selfMuted:false, hostMuted:false};
+    this.states[name] = Object.assign({}, cur, patch);
+    this.broadcastStates();
+    this.applyLocalMuteFlag();
+    this.updateButtons();
+  },
+  broadcastStates(){
+    if(Transport.active==='quick') QMP.broadcast({ type:'voice-state', states: this.states });
+  },
+  applyIncomingStates(states){
+    this.states = states || {};
+    this.applyLocalMuteFlag();
+    this.updateButtons();
+  },
+  applyLocalMuteFlag(){
+    if(!this.localStream) return;
+    const mine = this.myState();
+    const track = this.localStream.getAudioTracks()[0];
+    if(track) track.enabled = !(mine.selfMuted || mine.hostMuted);
+  },
+
+  roster(){
+    if(Lobby.isHost){
+      return Lobby.participants.map(p => ({ name:p.name, peerId: p.isHost ? (QMP.peer&&QMP.peer.id) : (p.guestRef&&p.guestRef.conn&&p.guestRef.conn.peer) }));
+    }
+    return Lobby.participants; // جايالنا من الهوست فيها peerId بالفعل
+  },
+  ensureMesh(){
+    if(!this.localStream || Transport.active!=='quick' || !QMP.peer) return;
+    const myId = QMP.peer.id;
+    this.roster().forEach(p => {
+      if(!p.peerId || p.peerId===myId || this.calls[p.peerId]) return;
+      if(myId < p.peerId){ // واحد بس من الاتنين يبدأ النداء عشان منتصلش مرتين ببعض
+        try{ this._wireCall(QMP.peer.call(p.peerId, this.localStream)); }catch(e){}
+      }
+    });
+  },
+  _wireCall(call){
+    if(!call) return;
+    this.calls[call.peer] = call;
+    call.on('stream', (remoteStream) => {
+      let audio = this.audios[call.peer];
+      if(!audio){ audio = document.createElement('audio'); audio.autoplay = true; document.body.appendChild(audio); this.audios[call.peer] = audio; }
+      audio.srcObject = remoteStream;
+    });
+    call.on('close', () => { delete this.calls[call.peer]; const a = this.audios[call.peer]; if(a){ a.remove(); delete this.audios[call.peer]; } });
+  },
+  answerIncoming(call){
+    call.answer(this.localStream || undefined);
+    this._wireCall(call);
+  },
+  updateButtons(){
+    const mine = this.myState();
+    const muted = mine.selfMuted || mine.hostMuted;
+    document.querySelectorAll('.mic-btn').forEach(b => {
+      b.textContent = !this.micOn ? '🎤' : (muted ? '🔇' : '🎙️');
+      b.title = !this.micOn ? 'افتح المايك' : (muted ? 'صوتك مكتوم - دوس تفك الكتم' : 'صوتك شغال - دوس تكتم');
+    });
+    const ov = document.getElementById('netUsersOverlay');
+    if(ov && ov.classList.contains('active')) NetUI.openUsers();
+  },
+  leave(){
+    Object.values(this.calls).forEach(c => { try{ c.close(); }catch(e){} });
+    this.calls = {}; 
+    Object.values(this.audios).forEach(a => a.remove());
+    this.audios = {};
+    if(this.localStream){ this.localStream.getTracks().forEach(t=>t.stop()); this.localStream=null; }
+    this.micOn = false; this.states = {};
+    this.updateButtons();
+  }
+};
+
 const MPUI = {
   panels: ['mp-choice','mp-host-setup','mp-host-wait','mp-join-setup','mp-join-manual','mp-join-wait','mp-lobby','mp-choose-player','mp-invite-wait','mp-invite-incoming','mp-match-hub'],
   mode: null, // 'quick' أو 'manual'
@@ -2006,6 +2192,7 @@ const MPUI = {
   back(){
     const choiceVisible = document.getElementById('mp-choice').style.display !== 'none';
     if (choiceVisible) {
+      Voice.hideBar(); Voice.leave();
       QMP.destroy(); MP.destroy && MP.destroy();
       Nav.go('menu');
     } else { this.show('mp-choice'); }
@@ -2130,6 +2317,7 @@ const MPUI = {
     document.getElementById('mp-lobby-list').innerHTML = '';
     document.getElementById('mp-my-ready-btn').style.display = 'none';
     document.getElementById('mp-lobby-note').textContent = '';
+    Voice.showBar();
     // تبادل الأسماء مرة واحدة (مفيش نظام لوبي كامل في الطريقة اليدوية زي السريعة)
     MP.send({ type:'hello', name: Lobby.myName });
     if (isHost) {
@@ -2167,6 +2355,7 @@ const MPUI = {
     this.show('mp-lobby');
     document.getElementById('mp-my-ready-btn').style.display = '';
     this.renderLobby();
+    Voice.showBar();
   },
 
   renderLobby(){
@@ -2286,6 +2475,7 @@ const MPUI = {
   },
 
   exitServer(){
+    Voice.hideBar(); Voice.leave();
     QMP.destroy();
     Lobby.reset();
     this.kickTarget = null;
@@ -2293,6 +2483,7 @@ const MPUI = {
   },
 
   onKicked(){
+    Voice.hideBar(); Voice.leave();
     QMP.destroy();
     Lobby.reset();
     this.show('mp-choice');
@@ -2326,7 +2517,7 @@ const MPUI = {
   attemptRejoin(roomName, roomPassword, myName, triesLeft){
     if (triesLeft === undefined) triesLeft = 8;
     this.show('mp-lobby');
-    document.getElementById('mp-lobby-note').textContent = 'الهوست خرج، بنحاول نرجّعك تاني...';
+    document.getElementById('mp-lobby-note').textContent = 'الاتصال اتقطع، بنحاول نرجّعك تاني...';
     document.getElementById('mp-lobby-list').innerHTML = '';
     document.getElementById('mp-my-ready-btn').style.display = 'none';
     document.getElementById('mp-start-btn').style.display = 'none';
