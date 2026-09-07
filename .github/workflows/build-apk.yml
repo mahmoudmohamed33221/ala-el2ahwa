@@ -62,7 +62,7 @@ jobs:
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-    hideSystemBars();
+                  hideSystemBars();
                   requestNeededPermissions();
                   allowWebViewMedia();
               }
@@ -87,7 +87,7 @@ jobs:
                   }
               }
 
-// بيسأل المستخدم إذن المايك والكاميرا (أندرويد 6+ محتاج السؤال ده وقت التشغيل، مش بس في الـmanifest)
+              // بيسأل المستخدم إذن المايك والكاميرا (أندرويد 6+ محتاج السؤال ده وقت التشغيل، مش بس في الـmanifest)
               private void requestNeededPermissions() {
                   java.util.List<String> missing = new java.util.ArrayList<>();
                   if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
