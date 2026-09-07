@@ -1814,7 +1814,7 @@ const QRScan = {
     const el = document.getElementById(elId);
     if (!el || typeof QRCode === 'undefined') return;
     el.innerHTML = '';
-    try{ new QRCode(el, { text, width:150, height:150, correctLevel: QRCode.CorrectLevel.L }); }
+    try{ new QRCode(el, { text, width:230, height:230, correctLevel: QRCode.CorrectLevel.L }); }
     catch(e){ el.textContent = 'تعذر عرض الـ QR'; }
   },
 
