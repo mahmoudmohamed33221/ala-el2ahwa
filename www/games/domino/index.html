@@ -252,15 +252,19 @@
       </div>
 
       <div id="mp-host-wait" style="display:none;">
-        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">١) ورّي كود الـ QR ده لصاحبك، أو ابعتله نسخ ولصق:</p>
-        <div id="mp-offer-qr" style="background:#fff; padding:10px; border-radius:8px; width:170px; height:170px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
-        <textarea id="mp-offer-code" readonly style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none;"></textarea>
-        <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.copy('mp-offer-code')">📋 نسخ الكود</button>
-        <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="QRScan.open(code => { document.getElementById('mp-answer-code').value = code; })">📷 صوّر كود الرد بتاع صاحبك</button>
-        <p style="color:var(--text-muted); font-size:13px; margin:18px 0 8px;">٢) لما صاحبك يبعتلك كوده، الصقه هنا:</p>
-        <textarea id="mp-answer-code" placeholder="الصق كود صاحبك هنا" style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none;"></textarea>
-        <button class="plaque-btn primary" style="width:100%; margin-top:8px;" onclick="MPUI.hostConnect()">اتصال</button>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">ورّي كود الـ QR ده للشخص اللي هيدخل، أو صوره بكاميرته على طول:</p>
+        <div id="mp-offer-qr" style="background:#fff; padding:14px; border-radius:10px; width:260px; height:260px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
+        <details style="margin-top:6px;">
+          <summary style="color:var(--text-muted); font-size:12px; cursor:pointer;">أو انسخ الكود يدوي</summary>
+          <textarea id="mp-offer-code" readonly style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none; margin-top:6px;"></textarea>
+          <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.copy('mp-offer-code')">📋 نسخ الكود</button>
+        </details>
+        <p style="color:var(--text-muted); font-size:13px; margin:18px 0 8px;">بعد ما يصورك، صوّر إنت كود الرد اللي هيظهرله:</p>
+        <button class="plaque-btn primary" style="width:100%;" onclick="QRScan.open(code => { document.getElementById('mp-answer-code').value = code; MPUI.hostConnect(); })">📷 صوّر كود الرد بتاعه</button>
+        <textarea id="mp-answer-code" placeholder="أو الصق كود الرد هنا يدوي" style="width:100%; height:60px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none; margin-top:8px;"></textarea>
+        <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.hostConnect()">اتصال بالكود المنسوخ</button>
         <p id="mp-host-status" style="color:var(--brass-light); font-size:13px; margin-top:14px; font-weight:700;"></p>
+        <button class="plaque-btn" style="width:100%; margin-top:10px;" onclick="MPUI.show('mp-lobby')">رجوع للأوضة</button>
       </div>
 
       <div id="mp-join-setup" style="display:none;">
@@ -282,22 +286,21 @@
       </div>
 
       <div id="mp-join-manual" style="display:none;">
-        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">الصق كود صاحبك هنا:</p>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">صوّر كود صاحبك (أو الصقه يدوي):</p>
         <button class="plaque-btn primary" style="width:100%; margin-bottom:8px;" onclick="QRScan.open(code => { document.getElementById('mp-join-offer').value = code; })">📷 صوّر كود صاحبك</button>
         <textarea id="mp-join-offer" placeholder="أو الصق كود السيرفر هنا" style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none;"></textarea>
-        <div class="setting-group" style="text-align:right; margin-top:14px;">
-          <div class="setting-label">باسورد السيرفر (لو فيه)</div>
-          <input id="mp-join-pass" type="text" placeholder="سيبها فاضية لو مفيش باسورد" style="width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px;">
-        </div>
-        <button class="plaque-btn primary" style="width:100%;" onclick="MPUI.joinServerManual()">التالي</button>
+        <button class="plaque-btn primary" style="width:100%; margin-top:14px;" onclick="MPUI.joinServerManual()">التالي</button>
         <p id="mp-join-manual-error" style="color:#e08a7d; font-size:13px; margin-top:10px; font-weight:700;"></p>
       </div>
 
       <div id="mp-join-wait" style="display:none;">
-        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">ابعت الكود ده لصاحبك عشان يكمل بيه:</p>
-        <div id="mp-answer-qr" style="background:#fff; padding:10px; border-radius:8px; width:170px; height:170px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
-        <textarea id="mp-answer-out" readonly style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none;"></textarea>
-        <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.copy('mp-answer-out')">📋 نسخ الكود</button>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">دلوقتي صاحبك يصور الكود ده منك عشان تكمّل الاتصال:</p>
+        <div id="mp-answer-qr" style="background:#fff; padding:14px; border-radius:10px; width:260px; height:260px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
+        <details style="margin-top:6px;">
+          <summary style="color:var(--text-muted); font-size:12px; cursor:pointer;">أو انسخ الكود يدوي</summary>
+          <textarea id="mp-answer-out" readonly style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none; margin-top:6px;"></textarea>
+          <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.copy('mp-answer-out')">📋 نسخ الكود</button>
+        </details>
         <p id="mp-join-status" style="color:var(--brass-light); font-size:13px; margin-top:14px; font-weight:700;">في انتظار صاحبك يكمل الاتصال...</p>
       </div>
 
@@ -305,7 +308,8 @@
         <p style="color:#8ee08e; font-size:18px; font-weight:800; margin-top:10px;">متصل ✅</p>
         <p style="color:var(--text-muted); font-size:13px; margin:10px 0 6px;">اللي في الأوضة:</p>
         <div id="mp-lobby-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
-        <button class="plaque-btn primary" id="mp-my-ready-btn" style="width:100%;" onclick="MPUI.toggleReady()">جاهز ✅</button>
+        <button id="mp-invite-more-btn" class="plaque-btn" style="width:100%; display:none;" onclick="MPUI.inviteAnother()">📷 دعوة شخص جديد (QR)</button>
+        <button class="plaque-btn primary" id="mp-my-ready-btn" style="width:100%; margin-top:10px;" onclick="MPUI.toggleReady()">جاهز ✅</button>
         <button class="plaque-btn primary" id="mp-start-btn" style="width:100%; margin-top:10px; display:none;" onclick="MPUI.startMatch()">ابدأ اللعبة</button>
         <p id="mp-lobby-note" style="color:var(--text-muted); font-size:12px; margin-top:12px;"></p>
         <button class="plaque-btn" style="width:100%; margin-top:14px; background:#5c2318;" onclick="MPUI.exitServer()">خروج من السيرفر</button>
@@ -1706,12 +1710,12 @@ const Lobby = {
       const isReturningPlayer = guest.name === Net.peerGuestName;
       if(isReturningPlayer){
         Net.peerGuestRef = guest;
-        QMP.sendTo(guest, { type:'start-game', role:'player', hostName: Lobby.myName, guestName: guest.name });
+        Transport.hub().sendTo(guest, { type:'start-game', role:'player', hostName: Lobby.myName, guestName: guest.name });
         Toast.show(guest.name + ' رجع تاني 🎉');
       } else {
-        QMP.sendTo(guest, { type:'start-game', role:'spectator', hostName: Lobby.myName, guestName: Net.peerGuestName });
+        Transport.hub().sendTo(guest, { type:'start-game', role:'spectator', hostName: Lobby.myName, guestName: Net.peerGuestName });
       }
-      try{ QMP.sendTo(guest, { type:'game-state', state: JSON.stringify(state) }); }catch(e){}
+      try{ Transport.hub().sendTo(guest, { type:'game-state', state: JSON.stringify(state) }); }catch(e){}
     }
   },
   hostRemoveGuest(guest){
@@ -1724,7 +1728,7 @@ const Lobby = {
     }
   },
   hostKick(guest){
-    QMP.kickGuest(guest);
+    Transport.hub().kickGuest(guest);
     this.hostRemoveGuest(guest);
   },
   hostSetGuestReady(guest, ready){
@@ -1738,9 +1742,9 @@ const Lobby = {
     this.hostBroadcast();
   },
   hostBroadcast(){
-    QMP.broadcast({ type: 'lobby-update', participants: this.participants.map(p => ({
+    Transport.hub().broadcast({ type: 'lobby-update', participants: this.participants.map(p => ({
       name: p.name, ready: p.ready, isHost: p.isHost,
-      peerId: p.isHost ? (QMP.peer && QMP.peer.id) : (p.guestRef && p.guestRef.conn && p.guestRef.conn.peer)
+      peerId: p.isHost ? (Transport.active==='quick' && QMP.peer && QMP.peer.id) : (p.guestRef && p.guestRef.conn && p.guestRef.conn.peer)
     })) });
     MPUI.renderLobby();
     Voice.ensureMesh();
@@ -1755,7 +1759,7 @@ const Lobby = {
   guestApplyUpdate(list){ this.participants = list; MPUI.renderLobby(); Voice.ensureMesh(); },
   guestToggleReady(){
     this.myReady = !this.myReady;
-    QMP.send({ type: 'ready-toggle', ready: this.myReady });
+    Transport.send({ type: 'ready-toggle', ready: this.myReady });
   },
 
   // لو الاتصال بالهوست اتقطع فجأة (مش طرد): نحاول نطلع هوست جديد بنفس اسم الروم
@@ -1777,7 +1781,7 @@ const Lobby = {
     else if (data.type === 'invite-accept') {
       if (this.pendingInviteGuest === guest) {
         this.pendingInviteGuest = null;
-        QMP.startWithChosen(guest);
+        Transport.hub().startWithChosen(guest);
         MPUI.onMatchStarted(guest.name, guest);
       }
     } else if (data.type === 'invite-reject') {
@@ -1859,13 +1863,15 @@ const QRScan = {
   }
 };
 
+// MP: نفس فكرة الاتصال المباشر (WebRTC) بس بقت بتدعم أكتر من ضيف على نفس الهوست -
+// كل دعوة (invite) بتاخد اتصال (RTCPeerConnection) مستقل بيها، فالهوست يقدر يدعو ناس واحد ورا التاني
+// من غير ما يأثر على اللي متصلين خلاص. مفيش باسورد هنا خالص - أصلاً لازم تكون جنب صاحبك تصور كوده.
 const MP = {
-  pc: null, channel: null, isHost: false,
-  hostPassword: '', onData: null, onOpen: null,
+  isHost: false, guests: [], pending: {},
+  pc: null, channel: null, // للضيف بس: اتصاله الوحيد بالهوست
+  onData: null, onOpen: null, onClose: null, onGuestJoin: null, onGuestLeave: null,
 
-  _newPC(){
-    return new RTCPeerConnection({ iceServers: [] });
-  },
+  _newPC(){ return new RTCPeerConnection({ iceServers: [] }); },
 
   _waitIce(pc){
     return new Promise((resolve) => {
@@ -1884,48 +1890,84 @@ const MP = {
   _encode(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); },
   _decode(str){ return JSON.parse(decodeURIComponent(escape(atob(str.trim())))); },
 
-  _wireChannel(){
-    this.channel.onopen = () => { if (this.onOpen) this.onOpen(); };
-    this.channel.onmessage = (e) => { if (this.onData) this.onData(JSON.parse(e.data)); };
-    this.channel.onclose = () => { Toast.show('الاتصال اتقطع 📡 - الطريقة اليدوية معندهاش إعادة اتصال تلقائية، هتحتاجوا تعملوا الأكواد تاني'); };
-  },
-
-  async createServer(name, password){
+  // الهوست: بيفتح "دعوة" جديدة (أوفر مستقل) لشخص واحد جديد - من غير ما يأثر على أي حد متصل خلاص
+  async hostInvite(){
     this.isHost = true;
-    this.hostPassword = password || '';
-    this.pc = this._newPC();
-    this.channel = this.pc.createDataChannel('domino');
-    this._wireChannel();
-    const offer = await this.pc.createOffer();
-    await this.pc.setLocalDescription(offer);
-    await this._waitIce(this.pc);
-    return this._encode({ name, hasPassword: !!password, sdp: this.pc.localDescription });
+    const pc = this._newPC();
+    const dc = pc.createDataChannel('domino');
+    const inviteId = 'inv' + Math.random().toString(36).slice(2, 9);
+    const guest = {
+      conn: {
+        pc, dc, peer: inviteId, open: false,
+        send: (obj) => { try{ dc.send(JSON.stringify(obj)); }catch(e){} },
+        close: () => { try{ dc.close(); }catch(e){} try{ pc.close(); }catch(e){} }
+      },
+      name: 'صاحبك'
+    };
+    dc.onopen = () => {
+      guest.conn.open = true;
+      this.guests.push(guest);
+      if (this.onGuestJoin) this.onGuestJoin(guest);
+    };
+    dc.onclose = () => {
+      guest.conn.open = false;
+      this.guests = this.guests.filter(g => g !== guest);
+      if (this.onGuestLeave) this.onGuestLeave(guest);
+    };
+    dc.onmessage = (e) => { if (this.onData) this.onData(JSON.parse(e.data), guest); };
+    this.pending[inviteId] = { pc, guest };
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await this._waitIce(pc);
+    return { inviteId, code: this._encode({ sdp: pc.localDescription, inviteId }) };
   },
 
-  async completeHost(answerCode){
+  // الهوست: بيكمل دعوة معينة برد الضيف (كود QR/نسخ اللي جاله منه)
+  async hostComplete(inviteId, answerCode){
+    const entry = this.pending[inviteId];
+    if (!entry) throw new Error('INVITE_EXPIRED');
     const payload = this._decode(answerCode);
-    if (this.hostPassword && payload.pass !== this.hostPassword) {
-      throw new Error('WRONG_PASSWORD');
-    }
-    await this.pc.setRemoteDescription(payload.sdp);
+    entry.guest.name = (payload.name && payload.name.trim()) || 'صاحبك';
+    await entry.pc.setRemoteDescription(payload.sdp);
+    delete this.pending[inviteId];
   },
 
-  async prepareJoin(offerCode, password){
+  // الضيف: بيدخل بكود دعوة معين جاله من الهوست (QR أو نسخ)
+  async prepareJoin(offerCode, myName){
     const payload = this._decode(offerCode);
-    if (payload.hasPassword && !password) throw new Error('PASSWORD_REQUIRED');
     this.isHost = false;
     this.pc = this._newPC();
-    this.pc.ondatachannel = (e) => { this.channel = e.channel; this._wireChannel(); };
+    this.pc.ondatachannel = (e) => {
+      this.channel = e.channel;
+      this.channel.onopen = () => { if (this.onOpen) this.onOpen(); };
+      this.channel.onmessage = (ev) => { if (this.onData) this.onData(JSON.parse(ev.data)); };
+      this.channel.onclose = () => {
+        Toast.show('الاتصال اتقطع 📡 - الطريقة اليدوية معندهاش إعادة اتصال تلقائية، هتحتاجوا تعملوا الأكواد تاني');
+        if (this.onClose) this.onClose();
+      };
+    };
     await this.pc.setRemoteDescription(payload.sdp);
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
     await this._waitIce(this.pc);
-    return this._encode({ sdp: this.pc.localDescription, pass: password || '' });
+    return this._encode({ sdp: this.pc.localDescription, name: myName || '' });
+  },
+
+  broadcast(obj){ this.guests.forEach(g => { if (g.conn.open) g.conn.send(obj); }); },
+  sendTo(guest, obj){ if (guest && guest.conn && guest.conn.open) guest.conn.send(obj); },
+  kickGuest(guest){ this.sendTo(guest, { type: 'kicked' }); setTimeout(() => { try{ guest.conn.close(); }catch(e){} }, 200); },
+  startWithChosen(chosenGuest){
+    this.guests.forEach((g) => {
+      g.conn.send({ type: 'start-game', role: g === chosenGuest ? 'player' : 'spectator', hostName: Lobby.myName, guestName: chosenGuest.name });
+    });
   },
 
   send(obj){ if (this.channel && this.channel.readyState === 'open') this.channel.send(JSON.stringify(obj)); },
 
   destroy(){
+    try { Object.values(this.pending).forEach(p => { p.pc.close(); }); } catch(e){}
+    try { this.guests.forEach(g => { g.conn.close(); }); } catch(e){}
+    this.pending = {}; this.guests = [];
     try { if (this.channel) this.channel.close(); } catch(e){}
     try { if (this.pc) this.pc.close(); } catch(e){}
     this.pc = null; this.channel = null;
@@ -1935,6 +1977,7 @@ const MP = {
 // Transport: الواجهة الموحدة اللي هيستخدمها منطق اللعب الفعلي (المرحلة الجاية) - بتحدد مين الشغال، السريعة ولا اليدوية
 const Transport = {
   active: null, // 'quick' أو 'manual'
+  hub(){ return this.active === 'quick' ? QMP : MP; },
   send(obj){ if(this.active==='quick') QMP.send(obj); else if(this.active==='manual') MP.send(obj); },
   setOnData(fn){ QMP.onData = fn; MP.onData = fn; }
 };
@@ -1981,8 +2024,7 @@ const Net = {
     if(this.role!=='host') return;
     try{
       const snapshot = JSON.stringify(state);
-      if(Transport.active==='quick') QMP.broadcast({ type:'game-state', state: snapshot });
-      else Transport.send({ type:'game-state', state: snapshot });
+      Transport.hub().broadcast({ type:'game-state', state: snapshot });
     }catch(e){ console.error('hostSync failed', e); }
   },
 
@@ -2048,8 +2090,7 @@ const Net = {
   // الهوست بعد ما الماتش يخلص خالص - يرجع لقائمة الماتش (جولة جديدة / غيّر اللاعب)
   hostPostMatch(){
     Nav.closeResult();
-    if(Transport.active==='quick') QMP.broadcast({ type:'game-ended' });
-    else Transport.send({ type:'game-ended' });
+    Transport.hub().broadcast({ type:'game-ended' });
     this.active = false;
     this.hideGameButtons();
     Nav.go('mp');
@@ -2058,8 +2099,7 @@ const Net = {
   // الهوست عايز يلعب مع حد تاني (بعد ما جيم يخلص أو الماتش كله يخلص) - يصفّر كل حاجة ويوريه قائمة يختار منها
   hostChangePlayer(){
     Nav.closeResult();
-    if(Transport.active==='quick') QMP.broadcast({ type:'game-ended' });
-    else Transport.send({ type:'game-ended' });
+    Transport.hub().broadcast({ type:'game-ended' });
     this.active = false;
     this.hideGameButtons();
     Nav.go('mp');
@@ -2096,7 +2136,7 @@ const NetUI = {
     const p = Lobby.participants.find(p=>p.name===name && !p.isHost);
     if(!p || !p.guestRef) return;
     const wasActivePlayer = Net.peerGuestRef === p.guestRef;
-    QMP.kickGuest(p.guestRef);
+    Transport.hub().kickGuest(p.guestRef);
     Lobby.hostRemoveGuest(p.guestRef);
     NetUI.closeUsers();
     Toast.show('اتطرد ' + name);
@@ -2352,93 +2392,80 @@ const MPUI = {
     }
   },
 
-  // ============ الطريقة اليدوية (شخصين بس، من غير لوبي) ============
+  // ============ الطريقة اليدوية (QR/كود مباشر - بتدعم أكتر من شخص، من غير باسورد خالص) ============
+  currentInviteId: null,
+
   async useManualHost(){
     const myName = document.getElementById('mp-host-my-name').value.trim() || 'الهوست';
-    const name = document.getElementById('mp-host-name').value.trim() || 'سيرفر بدون اسم';
-    const pass = document.getElementById('mp-host-pass').value.trim();
-    document.getElementById('mp-offer-code').value = 'بنجهز الكود... لحظة';
+    const name = document.getElementById('mp-host-name').value.trim() || 'أوضة أوفلاين';
+    this.mode = 'manual';
+    Transport.active = 'manual';
+    Lobby.hostInit(myName, name, '');
+    MP.onGuestJoin = (guest) => { Lobby.hostAddGuest(guest); Toast.show(guest.name + ' دخل الأوضة 🎉'); this.show('mp-lobby'); };
+    MP.onGuestLeave = (guest) => { Lobby.hostRemoveGuest(guest); };
+    MP.onData = (data, guest) => { Lobby.handleHostMessage(data, guest); };
+    await this.startNewInvite();
+  },
+
+  // بتتنادى أول مرة، وبرضه كل ما الهوست يحب يدعو شخص جديد وهو لسه في الأوضة
+  async startNewInvite(){
     this.show('mp-host-wait');
+    const statusEl = document.getElementById('mp-host-status');
+    statusEl.textContent = 'بنجهز الكود...';
+    document.getElementById('mp-answer-code').value = '';
+    document.getElementById('mp-offer-code').value = '';
     try{
-      const code = await MP.createServer(name, pass);
+      const { inviteId, code } = await MP.hostInvite();
+      this.currentInviteId = inviteId;
       document.getElementById('mp-offer-code').value = code;
       QRScan.render('mp-offer-qr', code);
-      this.mode = 'manual';
-      Transport.active = 'manual';
-      Lobby.hostInit(myName, name, pass);
-      MP.onOpen = () => { this.enterManualLobby(true); };
+      statusEl.textContent = '';
     }catch(err){
-      document.getElementById('mp-host-status').textContent = 'حصل خطأ، جرب تاني';
+      statusEl.textContent = 'حصل خطأ في تجهيز الكود، جرب تاني';
     }
   },
+
+  inviteAnother(){ this.startNewInvite(); },
 
   async hostConnect(){
     const code = document.getElementById('mp-answer-code').value;
     const statusEl = document.getElementById('mp-host-status');
-    if (!code.trim()) { statusEl.textContent = 'الصق كود صاحبك الأول'; return; }
+    if (!code.trim()) { statusEl.textContent = 'صوّر أو الصق كود الرد الأول'; return; }
     statusEl.textContent = 'بنحاول نتصل...';
     try{
-      await MP.completeHost(code);
-      statusEl.textContent = 'تم، في انتظار اكتمال الاتصال...';
+      await MP.hostComplete(this.currentInviteId, code);
+      statusEl.textContent = '';
+      this.enterLobby(true);
     }catch(err){
-      statusEl.textContent = (err && err.message === 'WRONG_PASSWORD') ? 'الباسورد غلط عند صاحبك' : 'الكود غلط أو حصلت مشكلة، جرب تاني';
+      statusEl.textContent = 'الكود غلط أو الدعوة خلصت صلاحيتها، اعمل كود جديد';
     }
   },
 
   useManualJoin(){
     document.getElementById('mp-join-manual-error').textContent = '';
+    document.getElementById('mp-join-offer').value = '';
     this.show('mp-join-manual');
   },
 
   async joinServerManual(){
     const code = document.getElementById('mp-join-offer').value;
-    const pass = document.getElementById('mp-join-pass').value.trim();
     const myName = (document.getElementById('mp-my-name').value || '').trim() || 'أنا';
     const errEl = document.getElementById('mp-join-manual-error');
     errEl.textContent = '';
-    if (!code.trim()) { errEl.textContent = 'الصق كود السيرفر الأول'; return; }
+    if (!code.trim()) { errEl.textContent = 'صوّر أو الصق كود صاحبك الأول'; return; }
     try{
-      const answer = await MP.prepareJoin(code, pass);
+      const answer = await MP.prepareJoin(code, myName);
       document.getElementById('mp-answer-out').value = answer;
       QRScan.render('mp-answer-qr', answer);
       this.mode = 'manual';
       Transport.active = 'manual';
-      Lobby.guestInit(myName, '', pass);
-      MP.onOpen = () => { this.enterManualLobby(false); };
+      Lobby.guestInit(myName, '', '');
+      MP.onData = (data) => { Lobby.handleGuestMessage(data); };
+      MP.onClose = () => { Lobby.handleDisconnected(); };
+      MP.onOpen = () => { this.enterLobby(false); };
       this.show('mp-join-wait');
     }catch(err){
-      errEl.textContent = (err && err.message === 'PASSWORD_REQUIRED') ? 'السيرفر ده محتاج باسورد' : 'الكود غلط، اتأكد إنك ناسخه كامل';
-    }
-  },
-
-  enterManualLobby(isHost){
-    this.show('mp-lobby');
-    document.getElementById('mp-lobby-list').innerHTML = '';
-    document.getElementById('mp-my-ready-btn').style.display = 'none';
-    document.getElementById('mp-lobby-note').textContent = '';
-    Voice.showBar();
-    // تبادل الأسماء مرة واحدة (مفيش نظام لوبي كامل في الطريقة اليدوية زي السريعة)
-    MP.send({ type:'hello', name: Lobby.myName });
-    if (isHost) {
-      document.getElementById('mp-start-btn').style.display = '';
-      document.getElementById('mp-start-btn').onclick = () => {
-        const gName = Net.peerGuestName || 'صاحبك';
-        MP.send({ type:'start-game', role:'player', hostName: Lobby.myName, guestName: gName });
-        this.onMatchStarted(gName, null);
-      };
-      MP.onData = (data) => {
-        if (data.type === 'hello') { Net.peerGuestName = data.name || 'صاحبك'; }
-        else if (data.type === 'game-action') { Net.handleAction(data, null); }
-      };
-    } else {
-      document.getElementById('mp-start-btn').style.display = 'none';
-      document.getElementById('mp-lobby-note').textContent = 'في انتظار صاحبك يبدأ اللعبة...';
-      MP.onData = (data) => {
-        if (data.type === 'hello') { Net.hostName = data.name || 'الهوست'; }
-        else if (data.type === 'start-game') { this.onGameStart(data.role, data.hostName, data.guestName); }
-        else if (data.type === 'game-state') { Net.applyIncomingState(data.state); }
-        else if (data.type === 'game-ended') { this.onGameEnded(); }
-      };
+      errEl.textContent = 'الكود غلط، اتأكد إنك صورته/ناسخه كامل';
     }
   },
 
@@ -2449,7 +2476,7 @@ const MPUI = {
     Toast.show('اتنسخ ✅');
   },
 
-  // ============ اللوبي (الطريقة السريعة) ============
+  // ============ اللوبي (نفس الشاشة للطريقة السريعة والطريقة اليدوية) ============
   enterLobby(isHost){
     this.show('mp-lobby');
     document.getElementById('mp-my-ready-btn').style.display = '';
@@ -2476,6 +2503,9 @@ const MPUI = {
     const myReady = Lobby.myReady;
     const readyBtn = document.getElementById('mp-my-ready-btn');
     readyBtn.textContent = myReady ? 'مش جاهز' : 'جاهز ✅';
+
+    const inviteMoreBtn = document.getElementById('mp-invite-more-btn');
+    inviteMoreBtn.style.display = (Lobby.isHost && Transport.active === 'manual') ? '' : 'none';
 
     const startBtn = document.getElementById('mp-start-btn');
     const note = document.getElementById('mp-lobby-note');
@@ -2512,7 +2542,7 @@ const MPUI = {
     const p = Lobby.participants.find(p => p.name === name && !p.isHost);
     if (!p) return;
     Lobby.pendingInviteGuest = p.guestRef;
-    QMP.sendTo(p.guestRef, { type: 'invite', from: Lobby.myName });
+    Transport.hub().sendTo(p.guestRef, { type: 'invite', from: Lobby.myName });
     document.getElementById('mp-invite-wait-name').textContent = p.name;
     this.show('mp-invite-wait');
   },
@@ -2523,7 +2553,7 @@ const MPUI = {
   },
 
   respondInvite(accepted){
-    QMP.send({ type: accepted ? 'invite-accept' : 'invite-reject' });
+    Transport.send({ type: accepted ? 'invite-accept' : 'invite-reject' });
     if (accepted) { this.onGameStart('player'); }
     else { this.show('mp-lobby'); this.renderLobby(); }
   },
@@ -2575,7 +2605,7 @@ const MPUI = {
 
   exitServer(){
     Voice.hideBar(); Voice.leave();
-    QMP.destroy();
+    QMP.destroy(); MP.destroy();
     Lobby.reset();
     this.kickTarget = null;
     this.show('mp-choice');
@@ -2583,7 +2613,7 @@ const MPUI = {
 
   onKicked(){
     Voice.hideBar(); Voice.leave();
-    QMP.destroy();
+    QMP.destroy(); MP.destroy();
     Lobby.reset();
     this.show('mp-choice');
     Toast.show('تم طردك من السيرفر ❌');
