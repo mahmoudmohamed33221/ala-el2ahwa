@@ -62,9 +62,9 @@ jobs:
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  hideSystemBars();
-                  requestMicPermission();
-                  allowWebViewMic();
+    hideSystemBars();
+                  requestNeededPermissions();
+                  allowWebViewMedia();
               }
 
               @Override
@@ -87,17 +87,25 @@ jobs:
                   }
               }
 
-              // بيسأل المستخدم إذن المايك (أندرويد 6+ محتاج السؤال ده وقت التشغيل، مش بس في الـmanifest)
-              private void requestMicPermission() {
+// بيسأل المستخدم إذن المايك والكاميرا (أندرويد 6+ محتاج السؤال ده وقت التشغيل، مش بس في الـmanifest)
+              private void requestNeededPermissions() {
+                  java.util.List<String> missing = new java.util.ArrayList<>();
                   if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                           != PackageManager.PERMISSION_GRANTED) {
-                      ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1001);
+                      missing.add(Manifest.permission.RECORD_AUDIO);
+                  }
+                  if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                          != PackageManager.PERMISSION_GRANTED) {
+                      missing.add(Manifest.permission.CAMERA);
+                  }
+                  if (!missing.isEmpty()) {
+                      ActivityCompat.requestPermissions(this, missing.toArray(new String[0]), 1001);
                   }
               }
 
-              // بيخلي الـWebView (اللعبة نفسها) توافق على طلب المايك اللي جاي من getUserMedia
-              // من غير الخطوة دي، الإذن ممكن يتوافق عليه من أندرويد بس الـWebView برضه هيرفض المايك جوه اللعبة
-              private void allowWebViewMic() {
+              // بيخلي الـWebView (اللعبة نفسها) توافق على طلب المايك/الكاميرا اللي جاي من getUserMedia
+              // من غير الخطوة دي، الإذن ممكن يتوافق عليه من أندرويد بس الـWebView برضه هيرفض المايك/الكاميرا جوه اللعبة
+              private void allowWebViewMedia() {
                   getBridge().getWebView().setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
@@ -108,9 +116,9 @@ jobs:
           }
           JAVAEOF
 
-      - name: Add microphone permission to AndroidManifest
+      - name: Add microphone + camera permissions to AndroidManifest
         run: |
-          sed -i '/<uses-permission android:name="android.permission.INTERNET" \/>/a\    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />' android/app/src/main/AndroidManifest.xml
+          sed -i '/<uses-permission android:name="android.permission.INTERNET" \/>/a\    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />' android/app/src/main/AndroidManifest.xml
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
