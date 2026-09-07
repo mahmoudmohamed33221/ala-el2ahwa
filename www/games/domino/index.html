@@ -252,8 +252,12 @@
       </div>
 
       <div id="mp-host-wait" style="display:none;">
+        <div class="setting-group" style="text-align:right; margin-bottom:10px;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-host-wait-name" type="text" placeholder="اسمك اللي هيبان في الأوضة" style="width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px;" oninput="MPUI.updateHostName(this.value)">
+        </div>
         <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">ورّي كود الـ QR ده للشخص اللي هيدخل، أو صوره بكاميرته على طول:</p>
-        <div id="mp-offer-qr" style="background:#fff; padding:14px; border-radius:10px; width:260px; height:260px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
+        <div id="mp-offer-qr" style="background:#fff; padding:8px; border-radius:10px; width:280px; height:280px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
         <details style="margin-top:6px;">
           <summary style="color:var(--text-muted); font-size:12px; cursor:pointer;">أو انسخ الكود يدوي</summary>
           <textarea id="mp-offer-code" readonly style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none; margin-top:6px;"></textarea>
@@ -286,6 +290,10 @@
       </div>
 
       <div id="mp-join-manual" style="display:none;">
+        <div class="setting-group" style="text-align:right; margin-bottom:10px;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-join-manual-name" type="text" placeholder="اسمك اللي هيبان للهوست" style="width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px;">
+        </div>
         <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">صوّر كود صاحبك (أو الصقه يدوي):</p>
         <button class="plaque-btn primary" style="width:100%; margin-bottom:8px;" onclick="QRScan.open(code => { document.getElementById('mp-join-offer').value = code; })">📷 صوّر كود صاحبك</button>
         <textarea id="mp-join-offer" placeholder="أو الصق كود السيرفر هنا" style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none;"></textarea>
@@ -295,7 +303,7 @@
 
       <div id="mp-join-wait" style="display:none;">
         <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">دلوقتي صاحبك يصور الكود ده منك عشان تكمّل الاتصال:</p>
-        <div id="mp-answer-qr" style="background:#fff; padding:14px; border-radius:10px; width:260px; height:260px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
+        <div id="mp-answer-qr" style="background:#fff; padding:8px; border-radius:10px; width:280px; height:280px; margin:8px auto; display:flex; align-items:center; justify-content:center;"></div>
         <details style="margin-top:6px;">
           <summary style="color:var(--text-muted); font-size:12px; cursor:pointer;">أو انسخ الكود يدوي</summary>
           <textarea id="mp-answer-out" readonly style="width:100%; height:70px; font-size:11px; padding:8px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); resize:none; margin-top:6px;"></textarea>
@@ -1606,9 +1614,12 @@ const QMP = {
       const id = this._roomId(name);
       this.peer = new Peer(id);
       let settled = false;
-      const timer = setTimeout(() => { if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 7000);
+      // 20 ثانية بدل 7 - على شبكة بيانات الموبايل (خصوصًا لو مفيش نفس الراوتر) عملية الاتصال
+      // بتاخد وقت أطول عشان بتحتاج تعدي عن طريق سيرفر ترحيل (TURN)، مش مجرد اتصال مباشر
+      const timer = setTimeout(() => { if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 20000);
       this.peer.on('open', () => { if(!settled){ settled=true; clearTimeout(timer); resolve(); } });
       this.peer.on('call', (call) => { Voice.answerIncoming(call); });
+      this.peer.on('disconnected', () => { try{ this.peer.reconnect(); }catch(e){} });
       this.peer.on('error', (err) => {
         if(!settled){ settled=true; clearTimeout(timer);
           reject(new Error(err && err.type === 'unavailable-id' ? 'NAME_TAKEN' : 'NETWORK')); }
@@ -1658,8 +1669,10 @@ const QMP = {
       const id = this._roomId(name);
       this.peer = new Peer();
       let settled = false;
-      const timer = setTimeout(() => { if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 7000);
+      // 20 ثانية بدل 7 - نفس سبب المهلة في createServer (احتمال المرور بسيرفر ترحيل TURN بطيء على النت الموبايل)
+      const timer = setTimeout(() => { if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 20000);
       this.peer.on('call', (call) => { Voice.answerIncoming(call); });
+      this.peer.on('disconnected', () => { try{ this.peer.reconnect(); }catch(e){} });
       this.peer.on('open', () => {
         this.conn = this.peer.connect(id, { reliable: true });
         this.conn.on('open', () => { this.conn.send({ type: 'auth', pass: password || '', name: myName || '' }); });
@@ -1814,7 +1827,7 @@ const QRScan = {
     const el = document.getElementById(elId);
     if (!el || typeof QRCode === 'undefined') return;
     el.innerHTML = '';
-    try{ new QRCode(el, { text, width:230, height:230, correctLevel: QRCode.CorrectLevel.L }); }
+    try{ new QRCode(el, { text, width:260, height:260, correctLevel: QRCode.CorrectLevel.L }); }
     catch(e){ el.textContent = 'تعذر عرض الـ QR'; }
   },
 
@@ -1869,6 +1882,7 @@ const QRScan = {
 const MP = {
   isHost: false, guests: [], pending: {},
   pc: null, channel: null, // للضيف بس: اتصاله الوحيد بالهوست
+  localStream: null, _guestAudioEl: null, // صوت المايك في الطريقة اليدوية (من غير أي سيرفر)
   onData: null, onOpen: null, onClose: null, onGuestJoin: null, onGuestLeave: null,
 
   _newPC(){ return new RTCPeerConnection({ iceServers: [] }); },
@@ -1894,6 +1908,7 @@ const MP = {
   async hostInvite(){
     this.isHost = true;
     const pc = this._newPC();
+    if (this.localStream) { this.localStream.getTracks().forEach(t => pc.addTrack(t, this.localStream)); }
     const dc = pc.createDataChannel('domino');
     const inviteId = 'inv' + Math.random().toString(36).slice(2, 9);
     const guest = {
@@ -1902,8 +1917,9 @@ const MP = {
         send: (obj) => { try{ dc.send(JSON.stringify(obj)); }catch(e){} },
         close: () => { try{ dc.close(); }catch(e){} try{ pc.close(); }catch(e){} }
       },
-      name: 'صاحبك'
+      name: 'صاحبك', audioEl: null
     };
+    pc.ontrack = (e) => { this._playRemoteTrack(guest, e.streams[0]); };
     dc.onopen = () => {
       guest.conn.open = true;
       this.guests.push(guest);
@@ -1912,9 +1928,15 @@ const MP = {
     dc.onclose = () => {
       guest.conn.open = false;
       this.guests = this.guests.filter(g => g !== guest);
+      if (guest.audioEl) { guest.audioEl.remove(); guest.audioEl = null; }
       if (this.onGuestLeave) this.onGuestLeave(guest);
     };
-    dc.onmessage = (e) => { if (this.onData) this.onData(JSON.parse(e.data), guest); };
+    dc.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === '__mp_renego_offer') { this._handleRenegoOffer(pc, dc, data.sdp); return; }
+      if (data.type === '__mp_renego_answer') { this._handleRenegoAnswer(pc, data.sdp); return; }
+      if (this.onData) this.onData(data, guest);
+    };
     this.pending[inviteId] = { pc, guest };
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -1937,10 +1959,17 @@ const MP = {
     const payload = this._decode(offerCode);
     this.isHost = false;
     this.pc = this._newPC();
+    if (this.localStream) { this.localStream.getTracks().forEach(t => this.pc.addTrack(t, this.localStream)); }
+    this.pc.ontrack = (e) => { this._playRemoteTrack(null, e.streams[0]); };
     this.pc.ondatachannel = (e) => {
       this.channel = e.channel;
       this.channel.onopen = () => { if (this.onOpen) this.onOpen(); };
-      this.channel.onmessage = (ev) => { if (this.onData) this.onData(JSON.parse(ev.data)); };
+      this.channel.onmessage = (ev) => {
+        const data = JSON.parse(ev.data);
+        if (data.type === '__mp_renego_offer') { this._handleRenegoOffer(this.pc, this.channel, data.sdp); return; }
+        if (data.type === '__mp_renego_answer') { this._handleRenegoAnswer(this.pc, data.sdp); return; }
+        if (this.onData) this.onData(data);
+      };
       this.channel.onclose = () => {
         Toast.show('الاتصال اتقطع 📡 - الطريقة اليدوية معندهاش إعادة اتصال تلقائية، هتحتاجوا تعملوا الأكواد تاني');
         if (this.onClose) this.onClose();
@@ -1951,6 +1980,57 @@ const MP = {
     await this.pc.setLocalDescription(answer);
     await this._waitIce(this.pc);
     return this._encode({ sdp: this.pc.localDescription, name: myName || '' });
+  },
+
+  // بتشغل صوت جاي من اتصال (من غير أي سيرفر - نفس الـRTCPeerConnection بتاع اللعب)
+  _playRemoteTrack(guest, stream){
+    let audio;
+    if (guest) { audio = guest.audioEl || (guest.audioEl = document.createElement('audio')); }
+    else { audio = this._guestAudioEl || (this._guestAudioEl = document.createElement('audio')); }
+    audio.autoplay = true;
+    audio.srcObject = stream;
+    if (!audio.isConnected) document.body.appendChild(audio);
+  },
+
+  // بيضيف تراك المايك المحلي على اتصال معين وبيعيد التفاوض عن طريق نفس قناة البيانات (من غير أي سيرفر تاني)
+  async _attachAudioToConnection(pc, dc){
+    if (!this.localStream || !pc) return;
+    const already = pc.getSenders().some(s => s.track && this.localStream.getTracks().includes(s.track));
+    if (already) return;
+    this.localStream.getTracks().forEach(t => pc.addTrack(t, this.localStream));
+    if (dc && dc.readyState === 'open') { await this._renegotiate(pc, dc); }
+  },
+
+  async _renegotiate(pc, dc){
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    dc.send(JSON.stringify({ type: '__mp_renego_offer', sdp: pc.localDescription }));
+  },
+  async _handleRenegoOffer(pc, dc, sdp){
+    await pc.setRemoteDescription(sdp);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    dc.send(JSON.stringify({ type: '__mp_renego_answer', sdp: pc.localDescription }));
+  },
+  async _handleRenegoAnswer(pc, sdp){
+    await pc.setRemoteDescription(sdp);
+  },
+
+  // بينده لما المستخدم يفتح المايك (بتتنادى من Voice.toggleMic في الطريقة اليدوية)
+  async enableLocalAudio(stream){
+    this.localStream = stream;
+    if (this.isHost) {
+      for (const g of this.guests) { await this._attachAudioToConnection(g.conn.pc, g.conn.dc); }
+    } else if (this.pc) {
+      await this._attachAudioToConnection(this.pc, this.channel);
+    }
+  },
+
+  // بينضّف عناصر الصوت لما نسيب الأوضة (الطريقة اليدوية)
+  clearAudio(){
+    this.guests.forEach(g => { if (g.audioEl) { g.audioEl.remove(); g.audioEl = null; } });
+    if (this._guestAudioEl) { this._guestAudioEl.remove(); this._guestAudioEl = null; }
+    this.localStream = null;
   },
 
   broadcast(obj){ this.guests.forEach(g => { if (g.conn.open) g.conn.send(obj); }); },
@@ -1966,11 +2046,12 @@ const MP = {
 
   destroy(){
     try { Object.values(this.pending).forEach(p => { p.pc.close(); }); } catch(e){}
-    try { this.guests.forEach(g => { g.conn.close(); }); } catch(e){}
+    try { this.guests.forEach(g => { g.conn.close(); if (g.audioEl) g.audioEl.remove(); }); } catch(e){}
     this.pending = {}; this.guests = [];
     try { if (this.channel) this.channel.close(); } catch(e){}
     try { if (this.pc) this.pc.close(); } catch(e){}
-    this.pc = null; this.channel = null;
+    if (this._guestAudioEl) { this._guestAudioEl.remove(); this._guestAudioEl = null; }
+    this.pc = null; this.channel = null; this.localStream = null;
   }
 };
 
@@ -2188,7 +2269,6 @@ const Voice = {
   },
 
   async toggleMic(){
-    if(Transport.active==='manual'){ Toast.show('الصوت متاح دلوقتي في وضع "السيرفر السريع" بس'); return; }
     if(!Transport.active){ return; }
     if(!this.localStream){
       if(window.isSecureContext===false){
@@ -2211,7 +2291,8 @@ const Voice = {
       }
       this.micOn = true;
       this.applyLocalMuteFlag();
-      this.ensureMesh();
+      if(Transport.active==='quick'){ this.ensureMesh(); }
+      else if(Transport.active==='manual'){ await MP.enableLocalAudio(this.localStream); }
       this.markMicOpen();
       this.updateButtons();
       Toast.show('المايك اتفتح 🎤');
@@ -2262,6 +2343,7 @@ const Voice = {
   },
   broadcastStates(){
     if(Transport.active==='quick') QMP.broadcast({ type:'voice-state', states: this.states });
+    else if(Transport.active==='manual') MP.broadcast({ type:'voice-state', states: this.states });
   },
   applyIncomingStates(states){
     this.states = states || {};
@@ -2320,6 +2402,7 @@ const Voice = {
     this.calls = {}; 
     Object.values(this.audios).forEach(a => a.remove());
     this.audios = {};
+    if(Transport.active==='manual'){ MP.clearAudio(); }
     if(this.localStream){ this.localStream.getTracks().forEach(t=>t.stop()); this.localStream=null; }
     this.micOn = false; this.states = {};
     this.updateButtons();
@@ -2353,8 +2436,10 @@ const MPUI = {
     if (!myName) { statusEl.textContent = 'اكتب اسمك الأول'; return; }
     if (!name) { statusEl.textContent = 'اكتب اسم للسيرفر'; return; }
     statusEl.textContent = 'بنحاول نوصلك بالطريقة السريعة...';
+    const slowTimer = setTimeout(() => { statusEl.textContent = 'لسه بنحاول... ممكن ياخد لحظات أطول على نت الموبايل 📶'; }, 6000);
     try {
       await QMP.createServer(name, pass);
+      clearTimeout(slowTimer);
       this.mode = 'quick';
       Transport.active = 'quick';
       Lobby.hostInit(myName, name, pass);
@@ -2363,8 +2448,9 @@ const MPUI = {
       QMP.onData = (data, guest) => { Lobby.handleHostMessage(data, guest); };
       this.enterLobby(true);
     } catch (err) {
+      clearTimeout(slowTimer);
       const msg = (err && err.message === 'NAME_TAKEN') ? 'الاسم ده مستخدم، جرب اسم تاني'
-                : 'معرفناش نوصلك بالطريقة السريعة (محتاجة نت)';
+                : 'معرفناش نوصلك بالطريقة السريعة - جرب تاني، ولو الاتنين عندكم نت موبايل من غير واي فاي/هوت سبوت مشترك ممكن ياخد شوية محاولات لحد ما يلاقي طريق بينكم';
       statusEl.textContent = msg;
     }
   },
@@ -2378,8 +2464,10 @@ const MPUI = {
     if (!myName) { errEl.textContent = 'اكتب اسمك الأول'; return; }
     if (!name) { errEl.textContent = 'اكتب اسم السيرفر'; return; }
     errEl.textContent = 'بنحاول ندخل...';
+    const slowTimer = setTimeout(() => { errEl.textContent = 'لسه بنحاول... ممكن ياخد لحظات أطول على نت الموبايل 📶'; }, 6000);
     try{
       await QMP.joinServer(name, pass, myName);
+      clearTimeout(slowTimer);
       this.mode = 'quick';
       Transport.active = 'quick';
       Lobby.guestInit(myName, name, pass);
@@ -2387,8 +2475,9 @@ const MPUI = {
       QMP.onClose = () => { Lobby.handleDisconnected(); };
       this.enterLobby(false);
     }catch(err){
+      clearTimeout(slowTimer);
       const map = { WRONG_PASSWORD:'الباسورد غلط', NOT_FOUND:'مفيش سيرفر بالاسم ده، اتأكد من الاسم' };
-      errEl.textContent = map[err && err.message] || 'معرفناش ندخل بالطريقة السريعة (محتاجة نت)';
+      errEl.textContent = map[err && err.message] || 'معرفناش ندخل بالطريقة السريعة - جرب تاني، ولو الاتنين عندكم نت موبايل من غير واي فاي/هوت سبوت مشترك ممكن ياخد شوية محاولات لحد ما يلاقي طريق بينكم';
     }
   },
 
@@ -2401,10 +2490,18 @@ const MPUI = {
     this.mode = 'manual';
     Transport.active = 'manual';
     Lobby.hostInit(myName, name, '');
+    document.getElementById('mp-host-wait-name').value = myName;
     MP.onGuestJoin = (guest) => { Lobby.hostAddGuest(guest); Toast.show(guest.name + ' دخل الأوضة 🎉'); this.show('mp-lobby'); };
     MP.onGuestLeave = (guest) => { Lobby.hostRemoveGuest(guest); };
     MP.onData = (data, guest) => { Lobby.handleHostMessage(data, guest); };
     await this.startNewInvite();
+  },
+
+  // بتتنادى كل ما الهوست يعدّل اسمه من جوه شاشة الكيو آر نفسها (الطريقة اليدوية)
+  updateHostName(value){
+    const myName = (value || '').trim() || 'الهوست';
+    Lobby.myName = myName;
+    if (Lobby.participants && Lobby.participants[0]) { Lobby.participants[0].name = myName; }
   },
 
   // بتتنادى أول مرة، وبرضه كل ما الهوست يحب يدعو شخص جديد وهو لسه في الأوضة
@@ -2444,12 +2541,14 @@ const MPUI = {
   useManualJoin(){
     document.getElementById('mp-join-manual-error').textContent = '';
     document.getElementById('mp-join-offer').value = '';
+    const prevName = document.getElementById('mp-my-name').value.trim();
+    document.getElementById('mp-join-manual-name').value = prevName;
     this.show('mp-join-manual');
   },
 
   async joinServerManual(){
     const code = document.getElementById('mp-join-offer').value;
-    const myName = (document.getElementById('mp-my-name').value || '').trim() || 'أنا';
+    const myName = (document.getElementById('mp-join-manual-name').value || '').trim() || 'أنا';
     const errEl = document.getElementById('mp-join-manual-error');
     errEl.textContent = '';
     if (!code.trim()) { errEl.textContent = 'صوّر أو الصق كود صاحبك الأول'; return; }
