@@ -1,5 +1,5 @@
 // service-worker.js — كاش بسيط لتشغيل المنصة والألعاب أوفلاين
-const CACHE_NAME = 'ala-el2ahwa-v3';
+const CACHE_NAME = 'ala-el2ahwa-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,9 @@ const ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
+  './icons/games/ludo.png',
   './games/domino/index.html',
+  './games/ludo/index.html',
   './vendor/qrcode.min.js'
   // لما تضيف لعبة جديدة، ضيف هنا: './games/<اسم-اللعبة>/index.html'
 ];
