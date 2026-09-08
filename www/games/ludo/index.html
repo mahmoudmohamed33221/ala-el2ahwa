@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2E1B10">
+<meta name="description" content="لعبة ليدو ع القهوة - العب من 2 لحد 8 لاعبين ضد الكمبيوتر أو مع أصحابك">
+<title>ع القهوة</title>
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" type="image/png" sizes="512x512" href="../../icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="../../vendor/qrcode.min.js"></script>
+<style>
+  :root{
+    --wood-dark:#2A1810; --wood:#5C3A21; --wood-light:#7A4E2E; --wood-grain:#4a2f1c;
+    --ivory:#FBF6EC; --ivory-shade:#EFE6D2; --ink:#262019;
+    --brass:#C89B3C; --brass-light:#E4C878; --brass-dark:#8f6e26;
+    --text-light:#F1E7D6; --text-muted:#c9b79a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(ellipse at 50% -10%, var(--wood-light) 0%, var(--wood) 40%, var(--wood-dark) 100%);
+    color:var(--text-light); font-family:'Cairo', sans-serif;
+    overflow:hidden; -webkit-user-select:none; user-select:none;
+  }
+  #app{ position:fixed; inset:0; display:flex; flex-direction:column; }
+  .screen{ position:absolute; inset:0; display:none; flex-direction:column; padding: max(10px, env(safe-area-inset-top)) 4px max(10px, env(safe-area-inset-bottom)); overflow-y:auto; }
+  .screen.active{display:flex;}
+  .frame{ flex:1; display:flex; flex-direction:column; border:2px solid var(--brass-dark); border-radius:6px; box-shadow: inset 0 0 0 6px rgba(0,0,0,.15), inset 0 0 40px rgba(0,0,0,.35); padding:22px 8px; background: linear-gradient(160deg, rgba(255,255,255,.02), rgba(0,0,0,.15)); }
+  #screen-menu .frame{align-items:center; justify-content:center; text-align:center; gap:6px;}
+  .brand-title{ font-family:'Amiri', serif; font-weight:700; font-size:clamp(42px, 14vw, 64px); color:var(--brass-light); text-shadow: 0 2px 0 rgba(0,0,0,.5), 0 0 24px rgba(200,155,60,.25); letter-spacing:2px; margin:0; }
+  .brand-tag{ font-size:14px; color:var(--text-muted); margin:0 0 28px; font-weight:600; }
+  .menu-btns{display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px;}
+  .plaque-btn{ font-family:'Cairo', sans-serif; font-weight:700; font-size:17px; color:var(--text-light); background: linear-gradient(180deg, var(--wood-light), var(--wood)); border:1px solid var(--brass-dark); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -3px 6px rgba(0,0,0,.35), 0 3px 6px rgba(0,0,0,.4); border-radius:4px; padding:15px 18px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; }
+  .plaque-btn:active{transform:translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 3px rgba(0,0,0,.35);}
+  .plaque-btn.primary{ background: linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border-color:#6e5218; }
+  .plaque-btn:disabled{ opacity:.45; pointer-events:none; }
+  .plaque-btn .ic{font-size:19px;}
+  .subpage-head{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .back-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:38px; height:38px; border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .subpage-title{ font-family:'Amiri', serif; font-size:26px; color:var(--brass-light); margin:0; flex:1; }
+  .content-block{ background:rgba(0,0,0,.18); border:1px solid rgba(200,155,60,.25); border-radius:6px; padding:16px 16px; margin-bottom:14px; line-height:2; font-size:15px; color:var(--text-light); }
+  .content-block h3{margin:0 0 8px; color:var(--brass-light); font-size:16px;}
+  .content-block p{margin:0 0 8px;}
+  .content-block ul{margin:0; padding-inline-start:20px;}
+  .content-block li{margin-bottom:6px;}
+  .signature-box{ margin-top:auto; text-align:center; padding-top:20px; }
+  .signature-box .line{ width:60px; height:2px; background:var(--brass-dark); margin:0 auto 12px; }
+  .signature-box .made{font-size:13px; color:var(--text-muted); margin:0 0 4px;}
+  .signature-box .name{ font-family:'Amiri', serif; font-size:22px; color:var(--brass-light); margin:0; }
+  .signature-box .ver{font-size:12px; color:var(--text-muted); margin-top:10px;}
+  .setting-group{margin-bottom:22px;}
+  .setting-label{font-size:14px; color:var(--text-muted); margin-bottom:10px; font-weight:700;}
+  .choice-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .choice-btn{ flex:1; min-width:52px; background:rgba(0,0,0,.2); border:1px solid var(--brass-dark); color:var(--text-light); padding:12px 8px; border-radius:5px; font-family:'Cairo'; font-size:14px; font-weight:700; cursor:pointer; }
+  .choice-btn.sel{ background: linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; border-color:#6e5218; }
+  .icon-btn{ background:none; border:1px solid var(--brass-dark); color:var(--brass-light); width:34px; height:34px; border-radius:50%; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .head-actions{display:flex; gap:6px;}
+  .toast{ position:fixed; bottom:max(18px, env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:rgba(20,12,6,.92); border:1px solid var(--brass-dark); color:var(--text-light); padding:10px 18px; border-radius:20px; font-size:13px; font-weight:700; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s, bottom .25s; text-align:center; max-width:88vw;}
+  .toast.show{ opacity:1; bottom:max(34px, env(safe-area-inset-bottom)); }
+  .result-overlay{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.72); z-index:40; padding:16px; }
+  .result-overlay.active{display:flex;}
+  .result-card{ background: linear-gradient(160deg, var(--wood-light), var(--wood-dark)); border:2px solid var(--brass-dark); border-radius:10px; padding:22px 20px; width:min(92vw,360px); text-align:center; max-height:88vh; overflow-y:auto; }
+  .result-card h2{ font-family:'Amiri', serif; font-size:30px; margin:0 0 8px; color:var(--brass-light); }
+  .result-card .sub{font-size:15px; color:var(--text-muted); margin:0 0 16px;}
+  .result-actions{display:flex; flex-direction:column; gap:10px; margin-top:16px;}
+  ::-webkit-scrollbar{height:4px; width:4px;}
+  ::-webkit-scrollbar-thumb{background:var(--brass-dark); border-radius:3px;}
+
+  /* ---------- شاشة اللعب ---------- */
+  #screen-game{padding:max(2px, env(safe-area-inset-top)) 0 0;}
+  .game-content{display:flex; flex-direction:column; flex:1; min-height:0; height:100%;}
+  .status-bar{ display:flex; align-items:center; justify-content:space-between; gap:6px; padding:4px 8px; font-size:12px; color:var(--text-muted); border-bottom:1px solid rgba(200,155,60,.2); flex:0 0 auto; }
+  .turn-pill{ background:rgba(0,0,0,.3); border:1px solid var(--brass-dark); border-radius:20px; padding:4px 12px; font-weight:800; color:var(--brass-light); font-size:12px; white-space:nowrap; }
+  .seat-legend{ display:flex; gap:5px; flex-wrap:wrap; padding:5px 8px; flex:0 0 auto; overflow-x:auto; }
+  .seat-chip{ display:flex; align-items:center; gap:4px; background:rgba(0,0,0,.22); border:1px solid rgba(200,155,60,.25); border-radius:14px; padding:3px 8px 3px 6px; font-size:10.5px; font-weight:700; color:var(--text-light); white-space:nowrap; }
+  .seat-chip .dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.4);}
+  .seat-chip.active{ border-color:var(--brass-light); box-shadow:0 0 6px rgba(228,200,120,.6); }
+  .seat-chip.out{ opacity:.5; }
+  .board-area{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:6px; background: radial-gradient(circle at 50% 45%, var(--wood-light) 0%, var(--wood) 55%, var(--wood-dark) 100%); }
+  .ludo-board{ position:relative; width:min(94vw, 84vh, 440px); aspect-ratio:1/1; border-radius:50%; background: radial-gradient(circle at 50% 50%, #6b4326 0%, #43290f 78%, #2a1608 100%); box-shadow: inset 0 0 0 4px rgba(0,0,0,.4), inset 0 0 30px rgba(0,0,0,.55), 0 6px 18px rgba(0,0,0,.5); }
+  .ring-cell{ position:absolute; border-radius:3px; background: var(--ivory-shade); box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+  .ring-cell.safe::after{ content:'★'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:60%; color:rgba(0,0,0,.45); }
+  .home-cell{ position:absolute; border-radius:3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.3); }
+  .center-hub{ position:absolute; border-radius:50%; background: radial-gradient(circle, #f3e6c8 0%, #d9c290 60%, #b89a5c 100%); box-shadow: inset 0 0 0 2px rgba(0,0,0,.4), 0 0 14px rgba(0,0,0,.4); }
+  .hub-slot{ position:absolute; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.5); }
+  .yard-badge{ position:absolute; border-radius:50%; border:2px solid; box-shadow: inset 0 0 10px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.4); }
+  .seat-name-tag{ position:absolute; transform:translate(-50%,-50%); font-size:9px; font-weight:800; text-shadow:0 1px 2px rgba(0,0,0,.8); white-space:nowrap; pointer-events:none; }
+  .token{ position:absolute; border-radius:50%; box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.5), 0 2px 4px rgba(0,0,0,.55); border:1px solid rgba(0,0,0,.35); transition:left .28s ease, top .28s ease; z-index:5; }
+  .token.movable{ z-index:8; cursor:pointer; animation: tokenPulse 1s infinite; }
+  @keyframes tokenPulse{ 0%,100%{ box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.5), 0 0 0 2px #fff, 0 0 10px 3px rgba(255,255,255,.85);} 50%{ box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.5), 0 0 0 2px #fff, 0 0 3px 1px rgba(255,255,255,.4);} }
+  .dice-area{ flex:0 0 auto; display:flex; align-items:center; justify-content:center; gap:14px; padding:8px 10px max(10px, env(safe-area-inset-bottom)); border-top:1px solid rgba(200,155,60,.25); background:rgba(0,0,0,.2); }
+  .die{ width:56px; height:56px; border-radius:12px; background:linear-gradient(160deg,#fffdf6,#e7ddc6); box-shadow: inset 0 -3px 4px rgba(0,0,0,.15), 0 4px 8px rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; font-size:30px; color:#2a1b06; border:2px solid #8f6e26; }
+  .die.spin{ animation: dieSpin .12s linear infinite; }
+  @keyframes dieSpin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+  .roll-btn{ min-width:150px; }
+  .dice-hint{ font-size:11px; color:var(--text-muted); text-align:center; flex:0 0 100%; margin-top:2px; }
+
+  /* ---------- شبكة/لوبي ---------- */
+  .field{ width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px; }
+  .lobby-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(0,0,0,.22); border:1px solid rgba(200,155,60,.25); border-radius:8px; padding:9px 12px; }
+  .lobby-row .nm{font-weight:700; font-size:14px; display:flex; align-items:center; gap:6px;}
+  .lobby-row .role-btn{ font-size:11px; font-weight:700; border-radius:14px; padding:5px 10px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-muted); cursor:pointer; }
+  .lobby-row .role-btn.on{ background:linear-gradient(180deg, var(--brass-light), var(--brass-dark)); color:#2a1b06; }
+  .ready-dot{width:8px; height:8px; border-radius:50%; background:#6a5a3a;}
+  .ready-dot.on{background:#7bd67b;}
+  .qr-box{ background:#fff; padding:8px; border-radius:10px; width:240px; height:240px; margin:8px auto; display:flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== القائمة الرئيسية ===================== -->
+  <div class="screen active" id="screen-menu">
+    <div class="frame">
+      <a href="../../index.html" style="position:absolute; top:max(10px, env(safe-area-inset-top)); inset-inline-start:10px; color:var(--brass-light); text-decoration:none; font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px; opacity:.85; z-index:3;">↩ كل الألعاب</a>
+      <h1 class="brand-title">ليدو</h1>
+      <p class="brand-tag">من اتنين لحد تمانية لاعيبة على نفس اللوح</p>
+      <div class="menu-btns">
+        <button class="plaque-btn primary" id="resumeBtn" style="display:none;" onclick="Nav.resumeMatch()"><span class="ic">⟳</span> استكمال اللعبة السابقة</button>
+        <button class="plaque-btn" onclick="Nav.go('newgame')"><span class="ic">▶</span> لعبة جديدة (مع الكمبيوتر)</button>
+        <button class="plaque-btn" onclick="MPUI.openHub()"><span class="ic">🎮</span> العب مع صحابك</button>
+        <button class="plaque-btn" onclick="Nav.go('settings')"><span class="ic">⚙</span> الإعدادات</button>
+        <button class="plaque-btn" onclick="Nav.go('rules')"><span class="ic">؟</span> طريقة اللعب</button>
+        <button class="plaque-btn" onclick="Nav.go('about')"><span class="ic">ℹ</span> عن اللعبة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== لعبة جديدة (سولو) ===================== -->
+  <div class="screen" id="screen-newgame">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">لعبة جديدة</h2>
+      </div>
+      <p style="color:var(--text-muted); font-size:14px; margin:0 0 16px;">هتلعب إنت، والباقي هيتحكم فيهم الكمبيوتر.</p>
+      <div class="setting-group">
+        <div class="setting-label">عدد أماكن اللعب على الأرض</div>
+        <div class="choice-row" id="soloCountRow"></div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">مستوى الكمبيوتر</div>
+        <div class="choice-row" id="soloDiffRow">
+          <button class="choice-btn" data-val="easy" onclick="Settings.setDiff('easy')">سهل</button>
+          <button class="choice-btn" data-val="medium" onclick="Settings.setDiff('medium')">متوسط</button>
+          <button class="choice-btn" data-val="hard" onclick="Settings.setDiff('hard')">صعب</button>
+        </div>
+      </div>
+      <button class="plaque-btn primary" style="width:100%; margin-top:8px;" onclick="Nav.startSoloConfirm()">ابدأ اللعب 🎲</button>
+    </div>
+  </div>
+
+  <!-- ===================== العب مع صحابك (شبكة) ===================== -->
+  <div class="screen" id="screen-mp">
+    <div class="frame" style="align-items:stretch; justify-content:flex-start; text-align:center;">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="MPUI.back()">→</button>
+        <h2 class="subpage-title">العب مع صحابك</h2>
+        <div class="head-actions" id="mpUsersBar" style="display:none;">
+          <button class="icon-btn" onclick="NetUI.openUsers()">👤</button>
+        </div>
+      </div>
+
+      <div id="mp-choice">
+        <p style="color:var(--text-muted); font-size:14px; margin-bottom:22px;">لازم كل الأجهزة على نفس شبكة الواي فاي، أو حد فاتح نقطة اتصال، أو استخدموا "أونلاين بالنت".</p>
+        <div class="menu-btns" style="margin:0 auto;">
+          <button class="plaque-btn primary" onclick="MPUI.showHostSetup()"><span class="ic">🖥</span> إنشاء سيرفر</button>
+          <button class="plaque-btn" onclick="MPUI.showJoinSetup()"><span class="ic">🔗</span> دخول لسيرفر</button>
+        </div>
+      </div>
+
+      <div id="mp-host-setup" style="display:none;">
+        <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-host-my-name" type="text" class="field" placeholder="اسمك اللي هيبان في الأوضة">
+        </div>
+        <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">اسم السيرفر</div>
+          <input id="mp-host-name" type="text" class="field" placeholder="مثلاً: طاولة محمود">
+        </div>
+        <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">باسورد (اختياري)</div>
+          <input id="mp-host-pass" type="text" class="field" placeholder="سيبها فاضية لو مش عايز باسورد">
+        </div>
+        <button class="plaque-btn primary" style="width:100%;" onclick="MPUI.createServer()">🌐 أونلاين بالنت (اسم + باسورد)</button>
+        <p id="mp-host-quick-status" style="color:var(--text-muted); font-size:13px; margin-top:14px; font-weight:700;"></p>
+        <button class="plaque-btn" style="width:100%; margin-top:10px;" onclick="MPUI.useManualHost()">📷 نفس الشبكة/الهوت سبوت (من غير نت) - QR</button>
+      </div>
+
+      <div id="mp-host-wait" style="display:none;">
+        <div class="setting-group" style="text-align:right; margin-bottom:10px;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-host-wait-name" type="text" class="field" placeholder="اسمك اللي هيبان في الأوضة" oninput="MPUI.updateHostName(this.value)">
+        </div>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">ورّي كود الـ QR ده للشخص اللي هيدخل، أو صوره بكاميرته على طول:</p>
+        <div id="mp-offer-qr" class="qr-box"></div>
+        <details style="margin-top:6px;">
+          <summary style="color:var(--text-muted); font-size:12px; cursor:pointer;">أو انسخ الكود يدوي</summary>
+          <textarea id="mp-offer-code" readonly class="field" style="height:70px; resize:none; margin-top:6px; font-size:11px;"></textarea>
+          <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.copy('mp-offer-code')">📋 نسخ الكود</button>
+        </details>
+        <p style="color:var(--text-muted); font-size:13px; margin:16px 0 8px;">بعد ما يصورك، صوّر إنت كود الرد اللي هيظهرله:</p>
+        <button class="plaque-btn primary" style="width:100%;" onclick="QRScan.open(code => { document.getElementById('mp-answer-code').value = code; MPUI.hostConnect(); })">📷 صوّر كود الرد بتاعه</button>
+        <textarea id="mp-answer-code" placeholder="أو الصق كود الرد هنا يدوي" class="field" style="height:60px; resize:none; margin-top:8px; font-size:11px;"></textarea>
+        <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.hostConnect()">اتصال بالكود المنسوخ</button>
+        <p id="mp-host-status" style="color:var(--brass-light); font-size:13px; margin-top:14px; font-weight:700;"></p>
+        <button id="mp-invite-more-btn" class="plaque-btn" style="width:100%; margin-top:10px; display:none;" onclick="MPUI.inviteAnother()">📷 دعوة شخص جديد (QR)</button>
+        <button class="plaque-btn primary" style="width:100%; margin-top:10px;" id="mp-manual-tolobby-btn" onclick="MPUI.gotoLobby()">تمام، كمّل للأوضة</button>
+      </div>
+
+      <div id="mp-join-setup" style="display:none;">
+        <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-join-my-name" type="text" class="field" placeholder="اسمك اللي هيبان في الأوضة">
+        </div>
+        <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">اسم السيرفر</div>
+          <input id="mp-join-name" type="text" class="field" placeholder="اسم السيرفر بالظبط">
+        </div>
+        <div class="setting-group" style="text-align:right;">
+          <div class="setting-label">باسورد (لو موجود)</div>
+          <input id="mp-join-pass" type="text" class="field" placeholder="سيبها فاضية لو مفيش">
+        </div>
+        <button class="plaque-btn primary" id="mp-join-connect-btn" style="width:100%;" onclick="MPUI.joinServer()">🌐 أونلاين بالنت (اسم + باسورد)</button>
+        <p id="mp-join-quick-status" style="color:var(--text-muted); font-size:13px; margin-top:10px; font-weight:700;"></p>
+        <button class="plaque-btn" style="width:100%; margin-top:10px;" onclick="MPUI.useManualJoin()">📷 نفس الشبكة/الهوت سبوت (من غير نت) - QR</button>
+      </div>
+
+      <div id="mp-join-manual" style="display:none;">
+        <div class="setting-group" style="text-align:right; margin-bottom:10px;">
+          <div class="setting-label">اسمك</div>
+          <input id="mp-join-manual-name" type="text" class="field" placeholder="اسمك اللي هيبان في الأوضة">
+        </div>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:8px;">صوّر كود صاحبك (أو الصقه يدوي):</p>
+        <button class="plaque-btn" style="width:100%; margin-bottom:8px;" onclick="QRScan.open(code => { document.getElementById('mp-join-offer').value = code; })">📷 صوّر كود صاحبك</button>
+        <textarea id="mp-join-offer" placeholder="أو الصق كود الدعوة هنا" class="field" style="height:70px; resize:none; font-size:11px;"></textarea>
+        <button class="plaque-btn primary" style="width:100%; margin-top:8px;" onclick="MPUI.prepareManualJoin()">تجهيز كود الرد</button>
+        <div id="mp-join-wait" style="display:none;">
+          <p style="color:var(--text-muted); font-size:13px; margin:14px 0 8px;">دلوقتي صاحبك يصور الكود ده منك عشان تكمّل الاتصال:</p>
+          <div id="mp-answer-qr" class="qr-box"></div>
+          <details style="margin-top:6px;">
+            <summary style="color:var(--text-muted); font-size:12px; cursor:pointer;">أو انسخ الكود يدوي</summary>
+            <textarea id="mp-answer-out" readonly class="field" style="height:70px; resize:none; margin-top:6px; font-size:11px;"></textarea>
+            <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="MPUI.copy('mp-answer-out')">📋 نسخ الكود</button>
+          </details>
+          <button class="plaque-btn primary" style="width:100%; margin-top:10px;" onclick="MPUI.gotoLobby()">تمام، كمّل للأوضة</button>
+        </div>
+        <p id="mp-join-manual-error" style="color:#e08a7d; font-size:13px; margin-top:10px; font-weight:700;"></p>
+      </div>
+
+      <div id="mp-lobby" style="display:none;">
+        <p style="color:#8ee08e; font-size:16px; font-weight:800; margin:6px 0 12px;">متصل ✅</p>
+        <div class="setting-group" id="mp-host-count-wrap" style="display:none;">
+          <div class="setting-label">عدد أماكن اللعب على الأرض</div>
+          <div class="choice-row" id="mpCountRow"></div>
+        </div>
+        <p style="color:var(--text-muted); font-size:13px; margin:6px 0 6px; text-align:right;">اللي في الأوضة:</p>
+        <div id="mp-lobby-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;"></div>
+        <button id="mp-invite-more-btn2" class="plaque-btn" style="width:100%; display:none;" onclick="MPUI.inviteAnother()">📷 دعوة شخص جديد (QR)</button>
+        <button class="plaque-btn primary" id="mp-my-ready-btn" style="width:100%; margin-top:10px;" onclick="MPUI.toggleReady()">جاهز ✅</button>
+        <button class="plaque-btn primary" id="mp-start-btn" style="width:100%; margin-top:10px; display:none;" onclick="MPUI.startMatch()">ابدأ اللعبة 🎲</button>
+        <p id="mp-lobby-note" style="color:var(--text-muted); font-size:12px; margin-top:12px;"></p>
+        <button class="plaque-btn" style="width:100%; margin-top:14px; background:#5c2318;" onclick="MPUI.exitServer()">خروج من السيرفر</button>
+      </div>
+
+      <div id="mp-match-hub" style="display:none;">
+        <p id="mp-match-status" style="color:#8ee08e; font-size:18px; font-weight:800; margin-top:24px;"></p>
+        <div id="mp-match-host-actions" style="display:none;">
+          <button class="plaque-btn primary" style="width:100%; margin-top:20px;" onclick="LudoNet.hostRematch()">جولة جديدة (نفس الأماكن)</button>
+          <button class="plaque-btn" style="width:100%; margin-top:10px;" onclick="LudoNet.hostBackToSeating()">غيّر توزيع الأماكن</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== الإعدادات ===================== -->
+  <div class="screen" id="screen-settings">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">الإعدادات</h2>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">مستوى الكمبيوتر</div>
+        <div class="choice-row" id="diffRow">
+          <button class="choice-btn" data-val="easy" onclick="Settings.setDiff('easy')">سهل</button>
+          <button class="choice-btn" data-val="medium" onclick="Settings.setDiff('medium')">متوسط</button>
+          <button class="choice-btn" data-val="hard" onclick="Settings.setDiff('hard')">صعب</button>
+        </div>
+      </div>
+      <div class="content-block" style="font-size:13px; color:var(--text-muted);">
+        بيتطبق على أي لعبة جديدة مع الكمبيوتر.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== طريقة اللعب ===================== -->
+  <div class="screen" id="screen-rules">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">طريقة اللعب</h2>
+      </div>
+      <div class="content-block"><h3>الفكرة</h3><p>كل لاعب معاه 4 قطع في "بيته"، وهدفه يطلّعهم كلهم يلفوا اللوح كله ويوصلوا للمنتصف الأول.</p></div>
+      <div class="content-block"><h3>رمي الزهر</h3><ul><li>لازم ترمي 6 عشان تطلّع قطعة من البيت.</li><li>لما ترمي 6، أو تاكل قطعة خصمك، أو توصّل قطعة للبيت النهائي، بتاخد رمية زيادة.</li><li>لو رميت 6 ثلاث مرات ورا بعض من غير ما تحرك، دورك بيعدي على طول.</li></ul></div>
+      <div class="content-block"><h3>الأكل والأمان</h3><p>لو نزلت بقطعتك على مربع فيه قطعة خصم، بترجّعها البيت من الأول - إلا لو المربع ده "مربع أمان" (عليه نجمة أو هو نقطة دخول لاعب تاني)، هنا محدش بياكل حد.</p></div>
+      <div class="content-block"><h3>من 2 لحد 8 لاعبين</h3><p>اللعبة دي نسخة موسّعة من ليدو التقليدية: كل ما زودت عدد الأماكن (لغاية 8)، اللوح بيتوسّع ويضيف مكان جديد بلونه الخاص حوالين نفس الدائرة، وكل لاعب عنده بيته وطريقه للمنتصف. أول واحد يوصّل قطعه الأربعة يكسب.</p></div>
+    </div>
+  </div>
+
+  <!-- ===================== عن اللعبة ===================== -->
+  <div class="screen" id="screen-about">
+    <div class="frame">
+      <div class="subpage-head">
+        <button class="back-btn" onclick="Nav.go('menu')">›</button>
+        <h2 class="subpage-title">عن اللعبة</h2>
+      </div>
+      <div class="content-block"><p>«ليدو» من أشهر ألعاب اللوح في العالم، وهنا بروح ع القهوة: تقدر تلعب لوحدك ضد الكمبيوتر أو مع صحابك أونلاين وأوفلاين، ومن اتنين لحد تمانية لاعيبة مع بعض.</p></div>
+      <div class="signature-box"><div class="line"></div><p class="made">برمجة وتصميم</p><p class="name">محمود جابر</p><p class="ver">الإصدار 1.0</p></div>
+    </div>
+  </div>
+
+  <!-- ===================== شاشة اللعب ===================== -->
+  <div class="screen" id="screen-game">
+    <div class="game-content">
+      <div class="status-bar">
+        <div class="head-actions">
+          <button class="icon-btn" onclick="Nav.openGameMenu()">☰</button>
+          <button class="icon-btn" id="netUsersBtn" style="display:none;" onclick="NetUI.openUsers()">👤</button>
+        </div>
+        <div class="turn-pill" id="turnPill">دورك</div>
+        <div style="width:34px;"></div>
+      </div>
+      <div class="seat-legend" id="seatLegend"></div>
+      <div class="board-area">
+        <div class="ludo-board" id="ludoBoard"></div>
+      </div>
+      <div class="dice-area">
+        <div class="die" id="dieFace" onclick="Game.requestRoll()">🎲</div>
+        <button class="plaque-btn primary roll-btn" id="rollBtn" onclick="Game.requestRoll()">ارمِ الزهر</button>
+        <div class="dice-hint" id="diceHint"></div>
+      </div>
+      <div class="result-overlay" id="resultOverlay"><div class="result-card" id="resultCard"></div></div>
+      <div class="result-overlay" id="gameMenuOverlay"><div class="result-card" id="gameMenuCard"></div></div>
+      <div class="result-overlay" id="netUsersOverlay"><div class="result-card" id="netUsersCard"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="result-overlay" id="globalConfirmOverlay" style="position:fixed;"><div class="result-card" id="globalConfirmCard"></div></div>
+<div class="result-overlay" id="qrScanOverlay" style="position:fixed;">
+  <div class="result-card" style="padding:14px; width:min(90vw,360px);">
+    <h3 style="margin:0 0 10px; text-align:center;">صوّب الكاميرا على الكود</h3>
+    <video id="qrScanVideo" playsinline muted style="width:100%; border-radius:10px; background:#000;"></video>
+    <p id="qrScanStatus" style="text-align:center; font-size:13px; color:var(--text-muted); margin-top:8px;"></p>
+    <button class="plaque-btn" style="width:100%; margin-top:8px;" onclick="QRScan.close()">إلغاء</button>
+  </div>
+</div>
+<div class="toast" id="toastEl"></div>
+
+<script>
+/* ==================================================================
+   ليدو ع القهوة — من 2 لحد 8 لاعبين، سولو ضد الكمبيوتر أو أونلاين/أوفلاين
+   ================================================================== */
+
+const CFG = { ARM: 8, HOME_STEPS: 5 };
+const PALETTE = [
+  { id:'red',    hex:'#d9463b', name:'أحمر'    },
+  { id:'blue',   hex:'#2f6fed', name:'أزرق'    },
+  { id:'yellow', hex:'#eec13b', name:'أصفر'    },
+  { id:'green',  hex:'#3a9d5d', name:'أخضر'    },
+  { id:'purple', hex:'#9660d9', name:'بنفسجي'  },
+  { id:'orange', hex:'#e8823a', name:'برتقالي' },
+  { id:'teal',   hex:'#2bb0a6', name:'تركواز'  },
+  { id:'pink',   hex:'#e05c9e', name:'وردي'    }
+];
+function hexAlpha(hex, a){
+  const n = parseInt(hex.slice(1),16);
+  const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+const state = {
+  screen:'menu', numPlayers:4, difficulty:'medium',
+  seats:[], mySeat:0, netMode:false,
+  tokens:[], finished:[], turnSeat:0,
+  dice:null, sixStreak:0, movableList:[], awaitingMove:false,
+  winnerSeat:null, gameOver:false
+};
+
+/* ---------------------- تنقّل بين الشاشات ---------------------- */
+const Nav = {
+  go(name){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+name).classList.add('active');
+    state.screen = name;
+    document.getElementById('resultOverlay').classList.remove('active');
+    document.getElementById('gameMenuOverlay').classList.remove('active');
+    document.getElementById('globalConfirmOverlay').classList.remove('active');
+    const nu=document.getElementById('netUsersOverlay'); if(nu) nu.classList.remove('active');
+    if (typeof QRScan !== 'undefined') QRScan.close();
+    if(name==='newgame') Nav.renderSoloCount();
+  },
+  renderSoloCount(){
+    const row = document.getElementById('soloCountRow');
+    row.innerHTML='';
+    for(let n=2;n<=8;n++){
+      const b=document.createElement('button');
+      b.className='choice-btn'+(n===state.numPlayers?' sel':'');
+      b.textContent=n; b.onclick=()=>{ state.numPlayers=n; Nav.renderSoloCount(); };
+      row.appendChild(b);
+    }
+    document.querySelectorAll('#soloDiffRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===state.difficulty));
+  },
+  startSoloConfirm(){
+    const saved = Storage.load();
+    if(saved){
+      document.getElementById('globalConfirmCard').innerHTML = `
+        <h2 style="margin-bottom:10px;">تأكيد</h2>
+        <p class="sub">عندك لعبة سابقة متسيفة، لو بدأت لعبة جديدة هتفقدها. متأكد؟</p>
+        <div class="result-actions">
+          <button class="plaque-btn primary" onclick="Nav.closeGlobalConfirm(); Game.startSolo(state.numPlayers);">تأكيد، ابدأ</button>
+          <button class="plaque-btn" onclick="Nav.closeGlobalConfirm();">رجوع</button>
+        </div>`;
+      document.getElementById('globalConfirmOverlay').classList.add('active');
+    } else {
+      Game.startSolo(state.numPlayers);
+    }
+  },
+  resumeMatch(){
+    const saved = Storage.load();
+    if(!saved) return;
+    Object.assign(state, saved);
+    state.netMode=false;
+    Nav.go('game');
+    Board.build(); Render.all();
+    if(!state.gameOver){
+      const seat = state.seats[state.turnSeat];
+      if(seat && seat.type==='ai') setTimeout(()=>AI.takeTurn(), 700);
+    }
+  },
+  closeGlobalConfirm(){ document.getElementById('globalConfirmOverlay').classList.remove('active'); },
+  openGameMenu(){
+    const netHtml = state.netMode ? `<button class="plaque-btn" style="background:#5c2318;" onclick="Nav.askConfirm('leaveNet')">مغادرة الأوضة</button>` :
+      `<button class="plaque-btn" onclick="Nav.askConfirm('newSolo')">ابدأ لعبة جديدة</button>
+       <button class="plaque-btn" onclick="Nav.askConfirm('exit')">الخروج للقائمة الرئيسية</button>`;
+    document.getElementById('gameMenuCard').innerHTML = `
+      <h2 style="margin-bottom:16px;">القائمة</h2>
+      <div class="result-actions">
+        <button class="plaque-btn primary" onclick="Nav.closeGameMenu()">استمر</button>
+        ${netHtml}
+      </div>`;
+    document.getElementById('gameMenuOverlay').classList.add('active');
+  },
+  closeGameMenu(){ document.getElementById('gameMenuOverlay').classList.remove('active'); },
+  askConfirm(action){
+    const msgs = {
+      newSolo:'هتبدأ لعبة جديدة من الصفر بدل الحالية، متأكد؟',
+      exit:'هل تريد الخروج للقائمة الرئيسية؟ تقدر تكمل بعدين من "استكمال اللعبة السابقة".',
+      leaveNet:'هتخرج من الأوضة والماتش الحالي. متأكد؟'
+    };
+    document.getElementById('gameMenuCard').innerHTML = `
+      <h2 style="margin-bottom:10px;">تأكيد</h2>
+      <p class="sub">${msgs[action]}</p>
+      <div class="result-actions">
+        <button class="plaque-btn primary" onclick="Nav.doConfirmedAction('${action}')">تأكيد</button>
+        <button class="plaque-btn" onclick="Nav.openGameMenu()">رجوع</button>
+      </div>`;
+  },
+  doConfirmedAction(action){
+    Nav.closeGameMenu();
+    if(action==='newSolo'){ Game.startSolo(state.numPlayers); }
+    else if(action==='exit'){ Nav.go('menu'); Nav.refreshResume(); }
+    else if(action==='leaveNet'){ LudoNet.leaveMatch(); }
+  },
+  refreshResume(){
+    const saved = Storage.load();
+    document.getElementById('resumeBtn').style.display = (saved && !saved.gameOver) ? 'flex' : 'none';
+  }
+};
+
+/* ---------------------- حفظ محلي (سولو بس) ---------------------- */
+const Storage = {
+  KEY:'ludo_save_v1',
+  save(){ try{ if(state.netMode) return; if(state.screen==='game'){ localStorage.setItem(this.KEY, JSON.stringify(state)); } }catch(e){} },
+  load(){ try{ const raw=localStorage.getItem(this.KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } },
+  clear(){ try{ localStorage.removeItem(this.KEY); }catch(e){} }
+};
+
+/* ---------------------- تنبيهات صغيرة ---------------------- */
+const Toast = {
+  show(msg){
+    const el=document.getElementById('toastEl');
+    el.textContent=msg; el.classList.add('show');
+    clearTimeout(this._t);
+    this._t=setTimeout(()=>el.classList.remove('show'), 1800);
+  }
+};
+
+/* ---------------------- الإعدادات ---------------------- */
+const Settings = {
+  setDiff(v){
+    state.difficulty=v;
+    try{ localStorage.setItem('ludo_diff', v); }catch(e){}
+    document.querySelectorAll('#diffRow .choice-btn, #soloDiffRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===v));
+  },
+  load(){
+    try{ const v=localStorage.getItem('ludo_diff'); if(v) state.difficulty=v; }catch(e){}
+    document.querySelectorAll('#diffRow .choice-btn, #soloDiffRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===state.difficulty));
+  }
+};
+
+/* ==================================================================
+   محرك اللعبة
+   ================================================================== */
+const Game = {
+  ringLen(){ return CFG.ARM*state.numPlayers; },
+  finishVal(){ return this.ringLen()-1+CFG.HOME_STEPS; },
+
+  startSolo(n){
+    state.numPlayers=n; state.netMode=false; state.mySeat=0;
+    state.seats = Array.from({length:n},(_,i)=> i===0 ? {type:'human',name:'أنت',controller:'me'} : {type:'ai',name:'كمبيوتر '+i,controller:'ai'});
+    this.resetBoard();
+    Nav.go('game');
+    Board.build(); Render.all();
+    Storage.save();
+    this.maybeAiKick();
+  },
+
+  resetBoard(){
+    const n=state.numPlayers;
+    state.tokens = Array.from({length:n},()=>[-1,-1,-1,-1]);
+    state.finished = Array.from({length:n},()=>0);
+    state.turnSeat=0; state.dice=null; state.sixStreak=0; state.movableList=[]; state.awaitingMove=false;
+    state.winnerSeat=null; state.gameOver=false;
+  },
+
+  syncIfHost(){ if(state.netMode && typeof LudoNet!=='undefined' && LudoNet.role==='host') LudoNet.hostSync(); },
+
+  tokenMovable(seat,t,d){
+    const pos = state.tokens[seat][t];
+    const FIN = this.finishVal();
+    if(pos===FIN) return false;
+    if(pos===-1) return d===6;
+    return pos+d<=FIN;
+  },
+
+  requestRoll(){
+    if(state.gameOver || state.awaitingMove) return;
+    if(state.turnSeat!==state.mySeat) return;
+    if(state.netMode && typeof LudoNet!=='undefined' && LudoNet.role==='guest'){ LudoNet.sendAction('roll'); return; }
+    this.rollDice();
+  },
+
+  rollDice(){
+    if(state.awaitingMove || state.gameOver) return;
+    const d = 1+Math.floor(Math.random()*6);
+    state.dice=d;
+    state.sixStreak = (d===6) ? state.sixStreak+1 : 0;
+    if(state.sixStreak>=3){
+      state.sixStreak=0; state.dice=null;
+      Render.all();
+      Toast.show('٣ سِتّات ورا بعض – الدور بيعدي');
+      this.finishTurn(false);
+      return;
+    }
+    const seat=state.turnSeat;
+    const movable=[];
+    for(let t=0;t<4;t++){ if(this.tokenMovable(seat,t,d)) movable.push(t); }
+    state.movableList=movable;
+    if(movable.length===0){
+      Render.all();
+      this.syncIfHost();
+      setTimeout(()=>{ state.dice=null; this.finishTurn(d===6); }, 750);
+      return;
+    }
+    state.awaitingMove=true;
+    Render.all();
+    this.syncIfHost();
+    if(state.seats[seat].type==='ai' && (!state.netMode || (typeof LudoNet!=='undefined' && LudoNet.role==='host'))){
+      setTimeout(()=>AI.chooseAndMove(seat, movable.slice(), d), 550);
+    }
+  },
+
+  onTokenTap(seat,tok){
+    if(state.gameOver || !state.awaitingMove) return;
+    if(seat!==state.mySeat || state.turnSeat!==state.mySeat) return;
+    if(state.netMode && typeof LudoNet!=='undefined' && LudoNet.role==='guest'){ LudoNet.sendAction('move', {tok}); return; }
+    this.applyMove(seat,tok);
+  },
+
+  isMovable(seat,tok){
+    return state.awaitingMove && seat===state.turnSeat && seat===state.mySeat && state.movableList.includes(tok);
+  },
+
+  applyMove(seat,t){
+    if(!state.awaitingMove) return;
+    if(!state.movableList.includes(t)) return;
+    const d=state.dice;
+    const RL=this.ringLen(), FIN=this.finishVal();
+    let pos = state.tokens[seat][t];
+    pos = (pos===-1) ? 0 : pos+d;
+    let captured=false, reachedFinish=false;
+    if(pos===FIN){ reachedFinish=true; state.finished[seat]++; }
+    else if(pos<RL-1){
+      const abs=(seat*CFG.ARM+pos)%RL;
+      const isSafe = (abs%CFG.ARM===0) || (abs%CFG.ARM===Math.floor(CFG.ARM/2));
+      if(!isSafe){
+        for(let s2=0;s2<state.numPlayers;s2++){
+          if(s2===seat) continue;
+          for(let t2=0;t2<4;t2++){
+            const p2=state.tokens[s2][t2];
+            if(p2>=0 && p2<RL-1 && (s2*CFG.ARM+p2)%RL===abs){ state.tokens[s2][t2]=-1; captured=true; }
+          }
+        }
+      }
+    }
+    state.tokens[seat][t]=pos;
+    state.awaitingMove=false; state.movableList=[];
+    const rolledSix = state.dice===6; state.dice=null;
+
+    if(state.finished[seat]===4){
+      state.gameOver=true; state.winnerSeat=seat;
+      Render.all(); Render.showResult();
+      this.syncIfHost();
+      Storage.clear();
+      return;
+    }
+    Render.all();
+    if(captured) Toast.show('أكلت قطعة! 😈');
+    if(reachedFinish) Toast.show('قطعة وصلت البيت 🏠');
+    this.finishTurn(rolledSix || captured || reachedFinish);
+  },
+
+  finishTurn(extra){
+    if(!extra){
+      state.turnSeat = (state.turnSeat+1)%state.numPlayers;
+      state.sixStreak=0;
+    }
+    Storage.save();
+    Render.status(); Render.legend();
+    this.syncIfHost();
+    this.maybeAiKick();
+  },
+
+  maybeAiKick(){
+    if(state.gameOver) return;
+    const seat = state.seats[state.turnSeat];
+    if(!seat) return;
+    if(seat.type==='ai' && (!state.netMode || (typeof LudoNet!=='undefined' && LudoNet.role==='host'))){
+      setTimeout(()=>AI.takeTurn(), 700);
+    }
+  }
+};
+
+/* ---------------------- كمبيوتر ---------------------- */
+const AI = {
+  takeTurn(){
+    if(state.gameOver) return;
+    if(state.netMode && (typeof LudoNet==='undefined' || LudoNet.role!=='host')) return;
+    const seat=state.turnSeat;
+    if(!state.seats[seat] || state.seats[seat].type!=='ai') return;
+    Game.rollDice();
+  },
+  chooseAndMove(seat, movable, dice){
+    if(state.gameOver) return;
+    const t = this.pick(seat, movable, dice);
+    Game.applyMove(seat, t);
+  },
+  pick(seat, movable, dice){
+    if(state.difficulty==='easy') return movable[Math.floor(Math.random()*movable.length)];
+    const RL=Game.ringLen(), FIN=Game.finishVal();
+    let best=movable[0], bestScore=-Infinity;
+    for(const t of movable){
+      let pos=state.tokens[seat][t]; pos=(pos===-1)?0:pos+dice;
+      let score=0;
+      if(pos===FIN) score+=120;
+      if(state.tokens[seat][t]===-1) score+=18;
+      if(pos<RL-1){
+        const abs=(seat*CFG.ARM+pos)%RL;
+        const isSafe=(abs%CFG.ARM===0)||(abs%CFG.ARM===Math.floor(CFG.ARM/2));
+        for(let s2=0;s2<state.numPlayers;s2++){
+          if(s2===seat) continue;
+          for(let t2=0;t2<4;t2++){
+            const p2=state.tokens[s2][t2];
+            if(p2>=0 && p2<RL-1 && (s2*CFG.ARM+p2)%RL===abs && !isSafe) score+=65;
+          }
+        }
+        score += isSafe ? 10 : -6;
+      }
+      score += pos*0.25;
+      if(score>bestScore){ bestScore=score; best=t; }
+    }
+    return best;
+  }
+};
+
+/* ==================================================================
+   الرسم
+   ================================================================== */
+const Board = {
+  build(){
+    const wrap = document.getElementById('ludoBoard');
+    wrap.innerHTML='';
+    const size = wrap.clientWidth || 320;
+    const N = state.numPlayers, RL = CFG.ARM*N, FIN = RL-1+CFG.HOME_STEPS;
+    const cx=size/2, cy=size/2;
+    const Rring = size*0.37, Rhome0=size*0.34, Rcenter=size*0.15, Ryard=size*0.455;
+
+    // مركز اللوح
+    const hub=document.createElement('div'); hub.className='center-hub';
+    hub.style.width=hub.style.height=(Rcenter*2)+'px';
+    hub.style.left=(cx-Rcenter)+'px'; hub.style.top=(cy-Rcenter)+'px';
+    wrap.appendChild(hub);
+    for(let s=0;s<N;s++){
+      const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
+      const r=Rcenter*0.55;
+      const b=document.createElement('div'); b.className='hub-slot';
+      b.style.left=(cx+r*Math.cos(ang)-9)+'px'; b.style.top=(cy+r*Math.sin(ang)-9)+'px';
+      b.style.background=PALETTE[s].hex;
+      b.textContent=(state.finished[s]||0);
+      wrap.appendChild(b);
+    }
+
+    // مربعات الدايرة (الطريق المشترك)
+    const cellSize = Math.max(9, Math.min(20, (2*Math.PI*Rring/RL)*0.72));
+    for(let i=0;i<RL;i++){
+      const ang=-Math.PI/2 + 2*Math.PI*i/RL;
+      const owner=Math.floor(i/CFG.ARM);
+      const isEntry=(i%CFG.ARM===0), isStar=(i%CFG.ARM===Math.floor(CFG.ARM/2));
+      const el=document.createElement('div'); el.className='ring-cell';
+      el.style.width=el.style.height=cellSize+'px';
+      el.style.left=(cx+Rring*Math.cos(ang)-cellSize/2)+'px';
+      el.style.top=(cy+Rring*Math.sin(ang)-cellSize/2)+'px';
+      if(isEntry){ el.style.background=PALETTE[owner].hex; el.classList.add('safe'); }
+      else if(isStar){ el.style.background=hexAlpha(PALETTE[owner].hex,0.4); el.classList.add('safe'); }
+      wrap.appendChild(el);
+    }
+
+    // أعمدة البيت النهائي
+    const homeCellSize=cellSize*1.05;
+    for(let s=0;s<N;s++){
+      const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
+      for(let h=0;h<CFG.HOME_STEPS;h++){
+        const t=(h+1)/(CFG.HOME_STEPS+1);
+        const R=Rhome0 - t*(Rhome0-Rcenter);
+        const el=document.createElement('div'); el.className='home-cell';
+        el.style.width=el.style.height=homeCellSize+'px';
+        el.style.left=(cx+R*Math.cos(ang)-homeCellSize/2)+'px';
+        el.style.top=(cy+R*Math.sin(ang)-homeCellSize/2)+'px';
+        el.style.background=hexAlpha(PALETTE[s].hex,0.55);
+        wrap.appendChild(el);
+      }
+    }
+
+    // بيوت اللاعبين
+    const yardSize = Math.max(38, Math.min(76, (2*Math.PI*Ryard/N)*0.72));
+    const yardPos=[];
+    for(let s=0;s<N;s++){
+      const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
+      const left=cx+Ryard*Math.cos(ang)-yardSize/2, top=cy+Ryard*Math.sin(ang)-yardSize/2;
+      yardPos.push({left,top,size:yardSize});
+      const el=document.createElement('div'); el.className='yard-badge';
+      el.style.width=el.style.height=yardSize+'px';
+      el.style.left=left+'px'; el.style.top=top+'px';
+      el.style.background=hexAlpha(PALETTE[s].hex,0.28);
+      el.style.borderColor=PALETTE[s].hex;
+      wrap.appendChild(el);
+
+      const label=document.createElement('div'); label.className='seat-name-tag';
+      const lr = Ryard + yardSize*0.62;
+      label.style.left=(cx+lr*Math.cos(ang))+'px';
+      label.style.top=(cy+lr*Math.sin(ang))+'px';
+      label.style.color=PALETTE[s].hex;
+      label.textContent = (state.seats[s] && state.seats[s].name) ? state.seats[s].name.slice(0,10) : ('لاعب '+(s+1));
+      wrap.appendChild(label);
+    }
+
+    // القطع
+    const tokenSize=Math.max(12,Math.min(22,cellSize*1.15));
+    const key=(s,pos)=>{
+      if(pos===-1) return null;
+      if(pos>=FIN) return 'fin:'+s;
+      if(pos<RL-1) return 'ring:'+((s*CFG.ARM+pos)%RL);
+      return 'home:'+s+':'+(pos-(RL-1));
+    };
+    const groups={};
+    for(let s=0;s<N;s++){
+      if(!state.tokens[s]) continue;
+      state.tokens[s].forEach((pos,ti)=>{ const k=key(s,pos); if(k){ (groups[k]=groups[k]||[]).push(s+':'+ti); } });
+    }
+    const offs=[[0,0],[7,0],[-7,0],[0,7],[0,-7],[5,5],[-5,5],[5,-5]];
+    for(let s=0;s<N;s++){
+      if(!state.tokens[s]) continue;
+      state.tokens[s].forEach((pos,ti)=>{
+        const el=document.createElement('div'); el.className='token';
+        el.style.width=el.style.height=tokenSize+'px';
+        el.style.background=`radial-gradient(circle at 32% 28%, #fff8, transparent 45%), ${PALETTE[s].hex}`;
+        let x,y;
+        if(pos===-1){
+          const slot=[[-1,-1],[1,-1],[-1,1],[1,1]][ti];
+          const yp=yardPos[s];
+          x = yp.left+yp.size/2 + slot[0]*yp.size*0.23 - tokenSize/2;
+          y = yp.top+yp.size/2 + slot[1]*yp.size*0.23 - tokenSize/2;
+        } else if(pos>=FIN){
+          const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL; const r=Rcenter*0.55;
+          const grp=groups['fin:'+s]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
+          const off=offs[gi%offs.length];
+          x=cx+r*Math.cos(ang)+off[0]-tokenSize/2; y=cy+r*Math.sin(ang)+off[1]-tokenSize/2;
+        } else if(pos<RL-1){
+          const abs=(s*CFG.ARM+pos)%RL; const ang=-Math.PI/2 + 2*Math.PI*abs/RL;
+          const grp=groups['ring:'+abs]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
+          const off=offs[gi%offs.length];
+          x=cx+Rring*Math.cos(ang)+off[0]-tokenSize/2; y=cy+Rring*Math.sin(ang)+off[1]-tokenSize/2;
+        } else {
+          const hIdx=pos-(RL-1); const t=(hIdx+1)/(CFG.HOME_STEPS+1); const R=Rhome0-t*(Rhome0-Rcenter);
+          const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
+          x=cx+R*Math.cos(ang)-tokenSize/2; y=cy+R*Math.sin(ang)-tokenSize/2;
+        }
+        el.style.left=x+'px'; el.style.top=y+'px';
+        if(Game.isMovable(s,ti)){ el.classList.add('movable'); el.onclick=()=>Game.onTokenTap(s,ti); }
+        wrap.appendChild(el);
+      });
+    }
+  }
+};
+
+const Render = {
+  all(){ Board.build(); this.status(); this.legend(); },
+  status(){
+    const seat = state.seats[state.turnSeat];
+    const pill = document.getElementById('turnPill');
+    if(!seat){ pill.textContent=''; return; }
+    const mine = state.turnSeat===state.mySeat;
+    pill.textContent = mine ? 'دورك' : (seat.name+' يلعب');
+    pill.style.color = PALETTE[state.turnSeat].hex;
+    const die=document.getElementById('dieFace');
+    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    die.textContent = state.dice ? faces[state.dice] : '🎲';
+    const rollBtn=document.getElementById('rollBtn');
+    const canRoll = !state.gameOver && !state.awaitingMove && state.turnSeat===state.mySeat;
+    rollBtn.disabled = !canRoll;
+    rollBtn.textContent = state.awaitingMove ? 'دوّر على قطعة تلمع' : (mine ? 'ارمِ الزهر' : 'استنى دورك');
+    const hint=document.getElementById('diceHint');
+    hint.textContent = state.awaitingMove && mine ? 'دوس على القطعة اللي عايز تحركها' : '';
+  },
+  legend(){
+    const wrap=document.getElementById('seatLegend');
+    wrap.innerHTML='';
+    state.seats.forEach((seat,i)=>{
+      const chip=document.createElement('div');
+      chip.className='seat-chip'+(i===state.turnSeat?' active':'')+((state.finished[i]||0)===4?' out':'');
+      const dot=document.createElement('span'); dot.className='dot'; dot.style.background=PALETTE[i].hex;
+      chip.appendChild(dot);
+      const label=document.createElement('span');
+      label.textContent = (i===state.mySeat?'أنت':seat.name) + (seat.type==='ai'?' 🤖':'') + ' ('+(state.finished[i]||0)+'/4)';
+      chip.appendChild(label);
+      wrap.appendChild(chip);
+    });
+  },
+  showResult(){
+    const w=state.winnerSeat;
+    const mine = w===state.mySeat;
+    const title = mine ? '🏆 كسبت!' : (state.seats[w].name+' كسب 🏆');
+    let actions;
+    if(state.netMode){
+      if(typeof LudoNet!=='undefined' && LudoNet.role==='host'){
+        actions = `<button class="plaque-btn primary" onclick="LudoNet.hostRematch()">جولة جديدة (نفس الأماكن)</button>
+                   <button class="plaque-btn" onclick="LudoNet.hostBackToSeating()">غيّر توزيع الأماكن</button>`;
+      } else {
+        actions = `<p class="sub">في انتظار المضيف...</p>`;
+      }
+    } else {
+      actions = `<button class="plaque-btn primary" onclick="Nav.closeResult(); Game.startSolo(state.numPlayers);">لعبة جديدة</button>
+                 <button class="plaque-btn" onclick="Nav.closeResult(); Nav.go('menu'); Nav.refreshResume();">القائمة الرئيسية</button>`;
+    }
+    document.getElementById('resultCard').innerHTML = `<h2>${title}</h2><div class="result-actions">${actions}</div>`;
+    document.getElementById('resultOverlay').classList.add('active');
+  }
+};
+Nav.closeResult = function(){ document.getElementById('resultOverlay').classList.remove('active'); };
+
+window.addEventListener('resize', ()=>{ if(state.screen==='game') Board.build(); });
+
+/* ==================================================================
+   الاتصال بين الأجهزة — نفس فكرة الدومينو (PeerJS أونلاين + WebRTC/QR أوفلاين)
+   ================================================================== */
+const QMP = {
+  peer:null, conn:null, isHost:false, hostPassword:'',
+  guests:[], onData:null, onOpen:null, onGuestJoin:null, onGuestLeave:null, onClose:null,
+
+  _roomId(name){ return 'alaelahwa-ludo-' + name.trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g,'-'); },
+  destroy(){ try{ if(this.peer) this.peer.destroy(); }catch(e){} this.peer=null; this.conn=null; this.guests=[]; },
+
+  createServer(name, password){
+    this.destroy();
+    return new Promise((resolve,reject)=>{
+      if(typeof Peer==='undefined') return reject(new Error('NO_LIB'));
+      this.isHost=true; this.hostPassword=password||''; this.guests=[];
+      const id=this._roomId(name);
+      this.peer=new Peer(id);
+      let settled=false;
+      const timer=setTimeout(()=>{ if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 20000);
+      this.peer.on('open', ()=>{ if(!settled){ settled=true; clearTimeout(timer); resolve(); } });
+      this.peer.on('disconnected', ()=>{ try{ this.peer.reconnect(); }catch(e){} });
+      this.peer.on('error', (err)=>{ if(!settled){ settled=true; clearTimeout(timer); reject(new Error(err && err.type==='unavailable-id' ? 'NAME_TAKEN':'NETWORK')); } });
+      this.peer.on('connection', (conn)=>{
+        const guest={ conn, name:'صاحبك', netId:'g'+Math.random().toString(36).slice(2,8) };
+        conn.on('data',(data)=>{
+          if(data && data.type==='auth'){
+            if(this.hostPassword && data.pass!==this.hostPassword){ conn.send({type:'auth-fail'}); setTimeout(()=>conn.close(),300); }
+            else{ guest.name=(data.name&&data.name.trim())||'صاحبك'; this.guests.push(guest); conn.send({type:'auth-ok'}); if(this.onGuestJoin) this.onGuestJoin(guest); }
+          } else if(this.onData){ this.onData(data, guest); }
+        });
+        conn.on('close', ()=>{ this.guests=this.guests.filter(g=>g!==guest); if(this.onGuestLeave) this.onGuestLeave(guest); });
+      });
+    });
+  },
+  startWithChosen(){},
+  broadcast(obj){ this.guests.forEach(g=>{ if(g.conn.open) g.conn.send(obj); }); },
+  sendTo(guest, obj){ if(guest && guest.conn && guest.conn.open) guest.conn.send(obj); },
+  kickGuest(guest){ this.sendTo(guest,{type:'kicked'}); setTimeout(()=>{ try{ guest.conn.close(); }catch(e){} },200); },
+
+  joinServer(name, password, myName){
+    this.destroy();
+    return new Promise((resolve,reject)=>{
+      if(typeof Peer==='undefined') return reject(new Error('NO_LIB'));
+      this.isHost=false;
+      const id=this._roomId(name);
+      this.peer=new Peer();
+      let settled=false;
+      const timer=setTimeout(()=>{ if(!settled){ settled=true; reject(new Error('TIMEOUT')); } }, 20000);
+      this.peer.on('disconnected', ()=>{ try{ this.peer.reconnect(); }catch(e){} });
+      this.peer.on('open', ()=>{
+        this.conn=this.peer.connect(id, {reliable:true});
+        this.conn.on('open', ()=>{ this.conn.send({type:'auth', pass:password||'', name:myName||''}); });
+        this.conn.on('data',(data)=>{
+          if(data && data.type==='auth-ok'){ if(!settled){ settled=true; clearTimeout(timer); resolve(); } if(this.onOpen) this.onOpen(); }
+          else if(data && data.type==='auth-fail'){ if(!settled){ settled=true; clearTimeout(timer); reject(new Error('WRONG_PASSWORD')); } }
+          else if(this.onData){ this.onData(data); }
+        });
+        this.conn.on('error', ()=>{ if(!settled){ settled=true; clearTimeout(timer); reject(new Error('NETWORK')); } });
+        this.conn.on('close', ()=>{ if(this.onClose) this.onClose(); });
+      });
+      this.peer.on('error',(err)=>{ if(!settled){ settled=true; clearTimeout(timer); reject(new Error(err && err.type==='peer-unavailable' ? 'NOT_FOUND':'NETWORK')); } });
+    });
+  },
+  send(obj){ if(this.conn && this.conn.open) this.conn.send(obj); }
+};
+
+const MP = {
+  isHost:false, guests:[], pending:{}, pc:null, channel:null,
+  onData:null, onOpen:null, onClose:null, onGuestJoin:null, onGuestLeave:null,
+  _newPC(){ return new RTCPeerConnection({iceServers:[]}); },
+  _waitIce(pc){ return new Promise((resolve)=>{ if(pc.iceGatheringState==='complete') return resolve(); const check=()=>{ if(pc.iceGatheringState==='complete'){ pc.removeEventListener('icegatheringstatechange',check); resolve(); } }; pc.addEventListener('icegatheringstatechange',check); setTimeout(resolve,2500); }); },
+  _encode(obj){ return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))); },
+  _decode(str){ return JSON.parse(decodeURIComponent(escape(atob(str.trim())))); },
+
+  async hostInvite(){
+    this.isHost=true;
+    const pc=this._newPC();
+    const dc=pc.createDataChannel('ludo');
+    const inviteId='inv'+Math.random().toString(36).slice(2,9);
+    const guest={ conn:{ pc, dc, peer:inviteId, open:false, send:(obj)=>{ try{ dc.send(JSON.stringify(obj)); }catch(e){} }, close:()=>{ try{dc.close();}catch(e){} try{pc.close();}catch(e){} } }, name:'صاحبك', netId:'g'+Math.random().toString(36).slice(2,8) };
+    dc.onopen=()=>{ guest.conn.open=true; this.guests.push(guest); if(this.onGuestJoin) this.onGuestJoin(guest); };
+    dc.onclose=()=>{ guest.conn.open=false; this.guests=this.guests.filter(g=>g!==guest); if(this.onGuestLeave) this.onGuestLeave(guest); };
+    dc.onmessage=(e)=>{ const data=JSON.parse(e.data); if(this.onData) this.onData(data, guest); };
+    this.pending[inviteId]={pc, guest};
+    const offer=await pc.createOffer(); await pc.setLocalDescription(offer); await this._waitIce(pc);
+    return { inviteId, code:this._encode({sdp:pc.localDescription, inviteId}) };
+  },
+  async hostComplete(inviteId, answerCode){
+    const entry=this.pending[inviteId]; if(!entry) throw new Error('INVITE_EXPIRED');
+    const payload=this._decode(answerCode);
+    entry.guest.name=(payload.name&&payload.name.trim())||'صاحبك';
+    await entry.pc.setRemoteDescription(payload.sdp);
+    delete this.pending[inviteId];
+  },
+  async prepareJoin(offerCode, myName){
+    const payload=this._decode(offerCode);
+    this.isHost=false; this.pc=this._newPC();
+    this.pc.ondatachannel=(e)=>{
+      this.channel=e.channel;
+      this.channel.onopen=()=>{ if(this.onOpen) this.onOpen(); };
+      this.channel.onmessage=(ev)=>{ const data=JSON.parse(ev.data); if(this.onData) this.onData(data); };
+      this.channel.onclose=()=>{ Toast.show('الاتصال اتقطع 📡'); if(this.onClose) this.onClose(); };
+    };
+    await this.pc.setRemoteDescription(payload.sdp);
+    const answer=await this.pc.createAnswer(); await this.pc.setLocalDescription(answer); await this._waitIce(this.pc);
+    return this._encode({sdp:this.pc.localDescription, name:myName||''});
+  },
+  broadcast(obj){ this.guests.forEach(g=>{ if(g.conn.open) g.conn.send(obj); }); },
+  sendTo(guest, obj){ if(guest && guest.conn && guest.conn.open) guest.conn.send(obj); },
+  kickGuest(guest){ this.sendTo(guest,{type:'kicked'}); setTimeout(()=>{ try{ guest.conn.close(); }catch(e){} },200); },
+  send(obj){ if(this.channel && this.channel.readyState==='open') this.channel.send(JSON.stringify(obj)); },
+  destroy(){
+    try{ Object.values(this.pending).forEach(p=>{ p.pc.close(); }); }catch(e){}
+    try{ this.guests.forEach(g=>{ g.conn.close(); }); }catch(e){}
+    this.pending={}; this.guests=[];
+    try{ if(this.channel) this.channel.close(); }catch(e){}
+    try{ if(this.pc) this.pc.close(); }catch(e){}
+    this.pc=null; this.channel=null;
+  }
+};
+
+const Transport = {
+  active:null,
+  hub(){ return this.active==='quick' ? QMP : MP; },
+  send(obj){ if(this.active==='quick') QMP.send(obj); else if(this.active==='manual') MP.send(obj); },
+  setOnData(fn){ QMP.onData=fn; MP.onData=fn; }
+};
+
+/* ---------------------- الأوضة (لوبي) ---------------------- */
+const Lobby = {
+  isHost:false, myName:'', myReady:false, roomName:'', roomPassword:'',
+  participants:[], wasKicked:false, hostNumPlayers:4,
+
+  reset(){ this.isHost=false; this.myName=''; this.myReady=false; this.roomName=''; this.roomPassword=''; this.participants=[]; this.wasKicked=false; },
+  hostInit(myName, roomName, roomPassword){
+    this.isHost=true; this.myName=myName||'الهوست'; this.myReady=true; this.roomName=roomName; this.roomPassword=roomPassword||'';
+    this.participants=[{name:this.myName, ready:true, isHost:true, wantsPlay:true}];
+  },
+  hostAddGuest(guest){
+    this.participants.push({name:guest.name, ready:false, isHost:false, guestRef:guest, wantsPlay:true});
+    this.hostBroadcast();
+    if(LudoNet.active && LudoNet.role==='host'){
+      Transport.hub().sendTo(guest, {type:'start-game', seats:state.seats.map(s=>({type:s.type,name:s.name})), seatIndex:null, numPlayers:state.numPlayers, hostName:this.myName});
+      try{ Transport.hub().sendTo(guest, {type:'game-state', state: JSON.stringify(state)}); }catch(e){}
+    }
+  },
+  hostRemoveGuest(guest){
+    const seatIdx = LudoNet.active ? state.seats.findIndex(s=>s.controller===guest.netId) : -1;
+    this.participants = this.participants.filter(p=>p.guestRef!==guest);
+    this.hostBroadcast();
+    if(seatIdx>=0){
+      state.seats[seatIdx] = {type:'ai', name:'كمبيوتر '+(seatIdx+1), controller:'ai'};
+      Toast.show('الاتصال اتقطع، الكمبيوتر هيكمّل مكانه 🤖');
+      Render.legend();
+      if(state.turnSeat===seatIdx) Game.maybeAiKick();
+      LudoNet.hostSync();
+    }
+  },
+  hostKick(guest){ Transport.hub().kickGuest(guest); this.hostRemoveGuest(guest); },
+  hostToggleWantsPlay(guest){
+    const p=this.participants.find(p=>p.guestRef===guest);
+    if(p) p.wantsPlay = !p.wantsPlay;
+    this.hostBroadcast();
+  },
+  hostSetGuestReady(guest, ready){ const p=this.participants.find(p=>p.guestRef===guest); if(p) p.ready=!!ready; this.hostBroadcast(); },
+  hostToggleMyReady(){ this.myReady=!this.myReady; this.participants[0].ready=this.myReady; this.hostBroadcast(); },
+  hostBroadcast(){
+    Transport.hub().broadcast({ type:'lobby-update', numPlayers:this.hostNumPlayers, participants:this.participants.map(p=>({ name:p.name, ready:p.ready, isHost:p.isHost, wantsPlay:p.wantsPlay!==false })) });
+    MPUI.renderLobby();
+  },
+
+  guestInit(myName, roomName, roomPassword){ this.isHost=false; this.myName=myName||'أنا'; this.myReady=false; this.roomName=roomName; this.roomPassword=roomPassword||''; this.participants=[]; this.wasKicked=false; },
+  guestApplyUpdate(list, n){ this.participants=list; if(n) this.hostNumPlayers=n; MPUI.renderLobby(); },
+  guestToggleReady(){ this.myReady=!this.myReady; Transport.send({type:'ready-toggle', ready:this.myReady}); },
+
+  handleDisconnected(){
+    Toast.show('الاتصال بالهوست اتقطع 📡');
+    MPUI.onDisconnected();
+  },
+  handleHostMessage(data, guest){
+    if(data.type==='ready-toggle'){ this.hostSetGuestReady(guest, data.ready); }
+    else if(data.type==='game-action'){ LudoNet.handleAction(data, guest); }
+  },
+  handleGuestMessage(data){
+    if(data.type==='lobby-update'){ this.guestApplyUpdate(data.participants, data.numPlayers); }
+    else if(data.type==='start-game'){ LudoNet.guestOnStart(data); }
+    else if(data.type==='kicked'){ this.wasKicked=true; Toast.show('اتطردت من الأوضة'); MPUI.exitServer(true); }
+    else if(data.type==='game-state'){ LudoNet.applyIncomingState(data.state); }
+    else if(data.type==='game-ended'){ LudoNet.guestOnEnded(); }
+  }
+};
+
+/* ---------------------- QR (نفس الطريقة اليدوية) ---------------------- */
+const QRScan = {
+  stream:null, raf:null, onFound:null, detector:null,
+  render(elId, text){ const el=document.getElementById(elId); if(!el || typeof QRCode==='undefined') return; el.innerHTML=''; try{ new QRCode(el,{text, width:220, height:220, correctLevel:QRCode.CorrectLevel.L}); }catch(e){ el.textContent='تعذر عرض الـ QR'; } },
+  async open(onFound){
+    this.onFound=onFound;
+    const statusEl=document.getElementById('qrScanStatus'); statusEl.textContent='';
+    if(!('BarcodeDetector' in window)){ statusEl.textContent='الكاميرا مش مدعومة هنا، استخدم النسخ واللصق.'; document.getElementById('qrScanOverlay').classList.add('active'); return; }
+    document.getElementById('qrScanOverlay').classList.add('active');
+    try{
+      this.detector=new BarcodeDetector({formats:['qr_code']});
+      this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      const video=document.getElementById('qrScanVideo'); video.srcObject=this.stream; await video.play();
+      this.loop(video);
+    }catch(err){ statusEl.textContent='معنديش إذن الكاميرا، استخدم النسخ واللصق.'; }
+  },
+  async loop(video){
+    if(!this.stream) return;
+    try{ const codes=await this.detector.detect(video); if(codes && codes.length){ const text=codes[0].rawValue; const cb=this.onFound; this.close(); if(cb) cb(text); return; } }catch(e){}
+    this.raf=requestAnimationFrame(()=>this.loop(video));
+  },
+  close(){ if(this.raf) cancelAnimationFrame(this.raf); this.raf=null; if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; } document.getElementById('qrScanOverlay').classList.remove('active'); }
+};
+
+/* ---------------------- جسر الشبكة لمحرك اللعبة ---------------------- */
+const LudoNet = {
+  active:false, role:null, mySeatIndex:null,
+
+  sendAction(action, payload){ Transport.send(Object.assign({type:'game-action', action}, payload||{})); },
+
+  hostSync(){ if(this.role!=='host') return; try{ Transport.hub().broadcast({type:'game-state', state:JSON.stringify(state)}); }catch(e){} },
+
+  applyIncomingState(raw){
+    try{
+      const s=JSON.parse(raw);
+      Object.assign(state, s);
+      state.mySeat = (this.role==='host') ? 0 : (this.mySeatIndex!=null ? this.mySeatIndex : -1);
+      if(state.screen==='game'){ Board.build(); Render.status(); Render.legend(); }
+      if(state.gameOver){ Render.showResult(); }
+      else { document.getElementById('resultOverlay').classList.remove('active'); }
+    }catch(e){ console.error('applyIncomingState failed', e); }
+  },
+
+  handleAction(data, guestRef){
+    if(this.role!=='host') return;
+    const seatIdx = state.seats.findIndex(s=>s.controller===guestRef.netId);
+    if(seatIdx<0 || seatIdx!==state.turnSeat) return;
+    if(data.action==='roll') Game.rollDice();
+    else if(data.action==='move' && data.tok!=null) Game.applyMove(seatIdx, data.tok);
+  },
+
+  computeSeats(n){
+    const seats=[{type:'human', name:Lobby.myName||'الهوست', controller:'host'}];
+    const players = Lobby.participants.filter(p=>!p.isHost && p.wantsPlay!==false);
+    for(let i=1;i<n;i++){
+      const p=players[i-1];
+      if(p) seats.push({type:'human', name:p.name, controller:p.guestRef.netId});
+      else seats.push({type:'ai', name:'كمبيوتر '+i, controller:'ai'});
+    }
+    return seats;
+  },
+
+  hostStart(n){
+    const seats=this.computeSeats(n);
+    // ابعت لكل ضيف مقعده
+    Lobby.participants.forEach(p=>{
+      if(p.isHost) return;
+      const seatIdx = seats.findIndex(s=>s.controller===p.guestRef.netId);
+      Transport.hub().sendTo(p.guestRef, {type:'start-game', seats:seats.map(s=>({type:s.type,name:s.name})), seatIndex:(seatIdx>=0?seatIdx:null), numPlayers:n, hostName:Lobby.myName});
+    });
+    this.active=true; this.role='host'; this.mySeatIndex=0;
+    state.numPlayers=n; state.seats=seats; state.mySeat=0; state.netMode=true;
+    Game.resetBoard();
+    document.getElementById('mpUsersBar').style.display='flex';
+    document.getElementById('netUsersBtn').style.display='flex';
+    Nav.go('game'); Render.all();
+    this.hostSync();
+    Game.maybeAiKick();
+  },
+
+  guestOnStart(data){
+    this.active=true; this.role = (data.seatIndex!=null) ? 'guest' : 'spectator';
+    this.mySeatIndex = data.seatIndex;
+    state.numPlayers=data.numPlayers; state.netMode=true;
+    state.seats = data.seats.map((s,i)=> Object.assign({controller:(i===data.seatIndex?'me':(s.type==='ai'?'ai':'x'))}, s));
+    state.mySeat = (data.seatIndex!=null) ? data.seatIndex : -1;
+    document.getElementById('mpUsersBar').style.display='flex';
+    document.getElementById('netUsersBtn').style.display='flex';
+    Nav.go('game'); Render.all();
+    Toast.show(this.role==='spectator' ? 'إنت بتتفرج على الماتش ده 👀' : 'يلا بينا، دورك جاي!');
+  },
+
+  guestOnEnded(){
+    this.active=false; this.role=null; this.mySeatIndex=null;
+    document.getElementById('mpUsersBar').style.display='none';
+    document.getElementById('netUsersBtn').style.display='none';
+    Nav.go('mp'); MPUI.show('mp-match-hub');
+    document.getElementById('mp-match-status').textContent='الماتش خلص - في انتظار المضيف';
+    document.getElementById('mp-match-host-actions').style.display='none';
+  },
+
+  hostPostMatch(){
+    Nav.closeResult();
+    Transport.hub().broadcast({type:'game-ended'});
+    this.active=false; this.role=null;
+    document.getElementById('mpUsersBar').style.display='none';
+    document.getElementById('netUsersBtn').style.display='none';
+    Nav.go('mp'); MPUI.show('mp-match-hub');
+    document.getElementById('mp-match-status').textContent='وحّشتنا! جاهز لجولة تانية؟';
+    document.getElementById('mp-match-host-actions').style.display='block';
+  },
+  hostRematch(){ this.hostStart(state.numPlayers); },
+  hostBackToSeating(){
+    Nav.closeResult();
+    Transport.hub().broadcast({type:'game-ended'});
+    this.active=false; this.role=null;
+    document.getElementById('mpUsersBar').style.display='none';
+    document.getElementById('netUsersBtn').style.display='none';
+    Nav.go('mp'); MPUI.show('mp-lobby'); MPUI.renderLobby();
+  },
+  leaveMatch(){
+    if(this.role==='host'){ this.hostPostMatch(); }
+    else { MPUI.exitServer(); }
+  },
+  reset(){ this.active=false; this.role=null; this.mySeatIndex=null; }
+};
+
+/* ---------------------- واجهة الشبكة (شاشات وأزرار) ---------------------- */
+const NetUI = {
+  openUsers(){
+    const card=document.getElementById('netUsersCard');
+    const isHost = LudoNet.role==='host';
+    let rows='';
+    if(isHost){
+      rows += `<div class="lobby-row" style="margin-bottom:8px;"><span class="nm">👑 ${Lobby.myName} (إنت)</span></div>`;
+      Lobby.participants.filter(p=>!p.isHost).forEach(p=>{
+        rows += `<div class="lobby-row" style="margin-bottom:8px;"><span class="nm">${p.name}</span>
+          <button class="role-btn" onclick="NetUI.kick('${p.guestRef.netId}')">طرد</button></div>`;
+      });
+    } else {
+      rows = Lobby.participants.map(p=>`<div class="lobby-row" style="margin-bottom:8px;"><span class="nm">${p.isHost?'👑 ':''}${p.name}</span></div>`).join('');
+    }
+    card.innerHTML = `<h2 style="margin-bottom:14px;">المتصلين في السيرفر</h2>${rows}<div class="result-actions"><button class="plaque-btn" onclick="NetUI.closeUsers()">رجوع</button></div>`;
+    document.getElementById('netUsersOverlay').classList.add('active');
+  },
+  kick(netId){
+    const p = Lobby.participants.find(p=>p.guestRef && p.guestRef.netId===netId);
+    if(p) Lobby.hostKick(p.guestRef);
+    this.openUsers();
+  },
+  closeUsers(){ document.getElementById('netUsersOverlay').classList.remove('active'); }
+};
+
+/* ---------------------- واجهة المستخدم للوبي/الاتصال ---------------------- */
+const MPUI = {
+  currentInviteId:null,
+
+  openHub(){ Nav.go('mp'); this.showChoice(); },
+  show(id){ ['mp-choice','mp-host-setup','mp-host-wait','mp-join-setup','mp-join-manual','mp-lobby','mp-match-hub'].forEach(x=>{ const el=document.getElementById(x); if(el) el.style.display = (x===id)?'block':'none'; }); },
+  showChoice(){ this.show('mp-choice'); document.getElementById('mpUsersBar').style.display='none'; },
+  back(){
+    if(LudoNet.active){ Nav.go('game'); return; }
+    const visible = ['mp-host-setup','mp-host-wait','mp-join-setup','mp-join-manual','mp-lobby','mp-match-hub'].find(id=>document.getElementById(id).style.display==='block');
+    if(!visible || visible==='mp-choice'){ Nav.go('menu'); return; }
+    if(visible==='mp-lobby'){ this.exitServer(); return; }
+    this.showChoice();
+  },
+
+  showHostSetup(){ this.show('mp-host-setup'); },
+  showJoinSetup(){ this.show('mp-join-setup'); },
+
+  async createServer(){
+    const myName=(document.getElementById('mp-host-my-name').value||'').trim() || 'الهوست';
+    const roomName=(document.getElementById('mp-host-name').value||'').trim();
+    const pass=(document.getElementById('mp-host-pass').value||'').trim();
+    if(!roomName){ Toast.show('اكتب اسم للسيرفر'); return; }
+    const statusEl=document.getElementById('mp-host-quick-status');
+    statusEl.textContent='بيتوصل...';
+    try{
+      await QMP.createServer(roomName, pass);
+      Transport.active='quick';
+      Transport.setOnData((data, guest)=>{ Lobby.handleHostMessage(data, guest); });
+      QMP.onGuestJoin=(g)=>Lobby.hostAddGuest(g);
+      QMP.onGuestLeave=(g)=>Lobby.hostRemoveGuest(g);
+      Lobby.hostInit(myName, roomName, pass);
+      statusEl.textContent='';
+      this.gotoLobby();
+    }catch(e){
+      const map={NO_LIB:'المكتبة مش شغالة، جرب لاحقًا', TIMEOUT:'محاولة الاتصال خدت وقت طويل، جرب تاني', NAME_TAKEN:'اسم السيرفر ده مستخدم دلوقتي، جرب اسم تاني', NETWORK:'مشكلة في النت، جرب تاني'};
+      statusEl.textContent = map[e.message] || 'حصل خطأ، جرب تاني';
+    }
+  },
+
+  useManualHost(){
+    const myName=(document.getElementById('mp-host-my-name').value||'').trim() || 'الهوست';
+    Lobby.hostInit(myName, '', '');
+    Transport.active='manual';
+    Transport.setOnData((data, guest)=>{ Lobby.handleHostMessage(data, guest); });
+    MP.isHost=true; MP.guests=[];
+    MP.onGuestJoin=(g)=>Lobby.hostAddGuest(g);
+    MP.onGuestLeave=(g)=>Lobby.hostRemoveGuest(g);
+    document.getElementById('mp-host-wait-name').value=myName;
+    document.getElementById('mp-invite-more-btn').style.display='none';
+    document.getElementById('mp-manual-tolobby-btn').style.display='none';
+    this.show('mp-host-wait');
+    this.createInvite();
+  },
+  async createInvite(){
+    try{
+      const {inviteId, code} = await MP.hostInvite();
+      this.currentInviteId=inviteId;
+      document.getElementById('mp-offer-code').value=code;
+      QRScan.render('mp-offer-qr', code);
+      document.getElementById('mp-host-status').textContent='في انتظار صاحبك...';
+    }catch(e){ document.getElementById('mp-host-status').textContent='حصل خطأ في تجهيز الدعوة'; }
+  },
+  async hostConnect(){
+    const code=(document.getElementById('mp-answer-code').value||'').trim();
+    if(!code || !this.currentInviteId) return;
+    try{
+      await MP.hostComplete(this.currentInviteId, code);
+      document.getElementById('mp-host-status').textContent='اتصل بنجاح ✅';
+      document.getElementById('mp-answer-code').value='';
+      document.getElementById('mp-invite-more-btn').style.display='block';
+      document.getElementById('mp-manual-tolobby-btn').style.display='block';
+    }catch(e){ document.getElementById('mp-host-status').textContent='الكود مش صح أو انتهت صلاحيته'; }
+  },
+  inviteAnother(){ this.createInvite(); },
+  updateHostName(v){ Lobby.myName=(v||'').trim()||'الهوست'; if(Lobby.participants[0]) Lobby.participants[0].name=Lobby.myName; },
+  gotoLobby(){ this.show('mp-lobby'); this.renderLobby(); document.getElementById('mpUsersBar').style.display='flex'; },
+
+  async joinServer(){
+    const myName=(document.getElementById('mp-join-my-name').value||'').trim() || 'أنا';
+    const roomName=(document.getElementById('mp-join-name').value||'').trim();
+    const pass=(document.getElementById('mp-join-pass').value||'').trim();
+    if(!roomName){ Toast.show('اكتب اسم السيرفر'); return; }
+    const statusEl=document.getElementById('mp-join-quick-status');
+    statusEl.textContent='بيتوصل...';
+    try{
+      await QMP.joinServer(roomName, pass, myName);
+      Transport.active='quick';
+      Transport.setOnData((data)=>{ Lobby.handleGuestMessage(data); });
+      QMP.onClose=()=>Lobby.handleDisconnected();
+      Lobby.guestInit(myName, roomName, pass);
+      statusEl.textContent='';
+      this.gotoLobby();
+    }catch(e){
+      const map={NO_LIB:'المكتبة مش شغالة، جرب لاحقًا', TIMEOUT:'محاولة الاتصال خدت وقت طويل، جرب تاني', NOT_FOUND:'مفيش سيرفر بالاسم ده دلوقتي', WRONG_PASSWORD:'الباسورد غلط', NETWORK:'مشكلة في النت، جرب تاني'};
+      statusEl.textContent = map[e.message] || 'حصل خطأ، جرب تاني';
+    }
+  },
+  useManualJoin(){ this.show('mp-join-manual'); document.getElementById('mp-join-wait').style.display='none'; },
+  async prepareManualJoin(){
+    const myName=(document.getElementById('mp-join-manual-name').value||'').trim() || 'أنا';
+    const offer=(document.getElementById('mp-join-offer').value||'').trim();
+    const errEl=document.getElementById('mp-join-manual-error');
+    if(!offer){ errEl.textContent='حط كود الدعوة الأول'; return; }
+    try{
+      const answer = await MP.prepareJoin(offer, myName);
+      Transport.active='manual';
+      Transport.setOnData((data)=>{ Lobby.handleGuestMessage(data); });
+      MP.onOpen=()=>{ Lobby.guestInit(myName,'',''); this.gotoLobby(); };
+      MP.onClose=()=>Lobby.handleDisconnected();
+      document.getElementById('mp-answer-out').value=answer;
+      QRScan.render('mp-answer-qr', answer);
+      document.getElementById('mp-join-wait').style.display='block';
+      errEl.textContent='';
+    }catch(e){ errEl.textContent='كود الدعوة مش صح'; }
+  },
+
+  renderLobby(){
+    const list=document.getElementById('mp-lobby-list');
+    list.innerHTML='';
+    Lobby.participants.forEach(p=>{
+      const row=document.createElement('div'); row.className='lobby-row';
+      const nm=document.createElement('div'); nm.className='nm';
+      const dot=document.createElement('span'); dot.className='ready-dot'+(p.ready?' on':'');
+      nm.appendChild(dot);
+      const span=document.createElement('span'); span.textContent=(p.isHost?'👑 ':'')+p.name+(p.name===Lobby.myName?' (إنت)':'');
+      nm.appendChild(span);
+      row.appendChild(nm);
+      if(Lobby.isHost && !p.isHost){
+        const btn=document.createElement('button');
+        btn.className='role-btn'+(p.wantsPlay!==false?' on':'');
+        btn.textContent = p.wantsPlay!==false ? '🎮 لاعب' : '👀 بيتفرج';
+        btn.onclick=()=>Lobby.hostToggleWantsPlay(p.guestRef);
+        row.appendChild(btn);
+      } else if(!p.isHost && p.name!==Lobby.myName){
+        const tag=document.createElement('span'); tag.style.fontSize='11px'; tag.style.color='var(--text-muted)';
+        tag.textContent = p.wantsPlay!==false ? '🎮 لاعب' : '👀 بيتفرج';
+        row.appendChild(tag);
+      }
+      list.appendChild(row);
+    });
+
+    document.getElementById('mp-invite-more-btn2').style.display = (Transport.active==='manual' && Lobby.isHost) ? 'block' : 'none';
+
+    const countWrap=document.getElementById('mp-host-count-wrap');
+    if(Lobby.isHost){
+      countWrap.style.display='block';
+      const row=document.getElementById('mpCountRow');
+      row.innerHTML='';
+      for(let n=2;n<=8;n++){
+        const b=document.createElement('button'); b.className='choice-btn'+(n===Lobby.hostNumPlayers?' sel':'');
+        b.textContent=n; b.onclick=()=>{ Lobby.hostNumPlayers=n; Lobby.hostBroadcast(); };
+        row.appendChild(b);
+      }
+    } else {
+      countWrap.style.display='none';
+    }
+
+    const readyBtn=document.getElementById('mp-my-ready-btn');
+    const startBtn=document.getElementById('mp-start-btn');
+    if(Lobby.isHost){
+      readyBtn.style.display='none';
+      startBtn.style.display='block';
+      const note=document.getElementById('mp-lobby-note');
+      note.textContent = 'حدد عدد الأماكن، وحدد مين هيلعب ومين هيتفرج، وابدأ في أي وقت. أي مكان فاضي هيلعبه الكمبيوتر.';
+    } else {
+      readyBtn.style.display='block';
+      readyBtn.textContent = Lobby.myReady ? 'جاهز ✅' : 'مش جاهز';
+      readyBtn.classList.toggle('primary', Lobby.myReady);
+      startBtn.style.display='none';
+      document.getElementById('mp-lobby-note').textContent='في انتظار المضيف يبدأ اللعبة...';
+    }
+  },
+  toggleReady(){ Lobby.guestToggleReady(); this.renderLobby(); },
+  startMatch(){ LudoNet.hostStart(Lobby.hostNumPlayers); },
+
+  copy(id){ const el=document.getElementById(id); el.select(); el.setSelectionRange(0,99999); try{ document.execCommand('copy'); Toast.show('اتنسخ 📋'); }catch(e){} },
+
+  onDisconnected(){
+    Lobby.reset(); LudoNet.reset(); Transport.active=null;
+    QMP.destroy(); MP.destroy();
+    Nav.go('mp'); this.showChoice();
+  },
+  exitServer(silent){
+    Lobby.reset(); LudoNet.reset(); Transport.active=null;
+    QMP.destroy(); MP.destroy();
+    document.getElementById('mpUsersBar').style.display='none';
+    document.getElementById('netUsersBtn').style.display='none';
+    if(!silent) Nav.go('mp');
+    this.showChoice();
+  }
+};
+
+/* ---------------------- تشغيل أولي ---------------------- */
+(function init(){
+  Settings.load();
+  Nav.refreshResume();
+})();
+</script>
+</body>
+</html>
