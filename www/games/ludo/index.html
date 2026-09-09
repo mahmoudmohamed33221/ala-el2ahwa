@@ -386,6 +386,16 @@ function hexAlpha(hex, a){
   return `rgba(${r},${g},${b},${a})`;
 }
 
+/* من 2 لحد 4 لاعبين: نفس شكل اللوح الكلاسيكي (4 بيوت زوايا ثابتة)
+   من 5 لحد 8: شكل نجمة/مضلع بعدد بيوت = عدد اللاعبين */
+function cornerCountFor(n){ return n<=4 ? 4 : n; }
+function cornerMapFor(n){
+  if(n<=4){
+    return ([[],[],[0,2],[0,1,2],[0,1,2,3]])[n] || Array.from({length:n},(_,i)=>i);
+  }
+  return Array.from({length:n},(_,i)=>i);
+}
+
 const state = {
   screen:'menu', numPlayers:4, difficulty:'medium',
   seats:[], mySeat:0, netMode:false,
@@ -520,7 +530,9 @@ const Settings = {
    محرك اللعبة
    ================================================================== */
 const Game = {
-  ringLen(){ return CFG.ARM*state.numPlayers; },
+  cornerCount(){ return cornerCountFor(state.numPlayers); },
+  cornerOf(seat){ return cornerMapFor(state.numPlayers)[seat]; },
+  ringLen(){ return CFG.ARM*this.cornerCount(); },
   finishVal(){ return this.ringLen()-1+CFG.HOME_STEPS; },
 
   startSolo(n){
@@ -609,14 +621,16 @@ const Game = {
     let captured=false, reachedFinish=false;
     if(pos===FIN){ reachedFinish=true; state.finished[seat]++; }
     else if(pos<RL-1){
-      const abs=(seat*CFG.ARM+pos)%RL;
+      const corner=this.cornerOf(seat);
+      const abs=(corner*CFG.ARM+pos)%RL;
       const isSafe = (abs%CFG.ARM===0) || (abs%CFG.ARM===Math.floor(CFG.ARM/2));
       if(!isSafe){
         for(let s2=0;s2<state.numPlayers;s2++){
           if(s2===seat) continue;
+          const c2=this.cornerOf(s2);
           for(let t2=0;t2<4;t2++){
             const p2=state.tokens[s2][t2];
-            if(p2>=0 && p2<RL-1 && (s2*CFG.ARM+p2)%RL===abs){ state.tokens[s2][t2]=-1; captured=true; }
+            if(p2>=0 && p2<RL-1 && (c2*CFG.ARM+p2)%RL===abs){ state.tokens[s2][t2]=-1; captured=true; }
           }
         }
       }
@@ -683,13 +697,15 @@ const AI = {
       if(pos===FIN) score+=120;
       if(state.tokens[seat][t]===-1) score+=18;
       if(pos<RL-1){
-        const abs=(seat*CFG.ARM+pos)%RL;
+        const corner=Game.cornerOf(seat);
+        const abs=(corner*CFG.ARM+pos)%RL;
         const isSafe=(abs%CFG.ARM===0)||(abs%CFG.ARM===Math.floor(CFG.ARM/2));
         for(let s2=0;s2<state.numPlayers;s2++){
           if(s2===seat) continue;
+          const c2=Game.cornerOf(s2);
           for(let t2=0;t2<4;t2++){
             const p2=state.tokens[s2][t2];
-            if(p2>=0 && p2<RL-1 && (s2*CFG.ARM+p2)%RL===abs && !isSafe) score+=65;
+            if(p2>=0 && p2<RL-1 && (c2*CFG.ARM+p2)%RL===abs && !isSafe) score+=65;
           }
         }
         score += isSafe ? 10 : -6;
@@ -705,123 +721,161 @@ const AI = {
    الرسم
    ================================================================== */
 const Board = {
+  // نقطة على المحيط: مربّع كلاسيكي (2-4 لاعبين) أو نجمة/مضلع (5-8 لاعبين)
+  // corner: رقم الزاوية (0..C-1)  |  f: نسبة التقدّم جوه الضلع/القطاع (0..1)
+  edgePoint(classic, corner, f, C, R){
+    if(!classic){
+      const ang=-Math.PI/2 + 2*Math.PI*(corner+f)/C;
+      return {x:R*Math.cos(ang), y:R*Math.sin(ang)};
+    }
+    const signs=[[-1,-1],[1,-1],[1,1],[-1,1]]; // ف.ع.ي: فوق-شمال، فوق-يمين، تحت-يمين، تحت-شمال
+    const a=signs[corner%4], b=signs[(corner+1)%4];
+    return { x:(a[0]+(b[0]-a[0])*f)*R, y:(a[1]+(b[1]-a[1])*f)*R };
+  },
+  cornerPoint(classic, corner, C, R){ return this.edgePoint(classic, corner, 0, C, R); },
+
   build(){
     const wrap = document.getElementById('ludoBoard');
     wrap.innerHTML='';
     const size = wrap.clientWidth || 320;
-    const N = state.numPlayers, RL = CFG.ARM*N, FIN = RL-1+CFG.HOME_STEPS;
+    const classic = state.numPlayers<=4;           // شكل تربيعي ثابت (زي الليدو الأصلي) لحد 4 لاعبين
+    const C = Game.cornerCount();                    // 4 لو كلاسيك، أو نفس عدد اللاعبين لو نجمة (5-8)
+    const RL = CFG.ARM*C, FIN = RL-1+CFG.HOME_STEPS;
     const cx=size/2, cy=size/2;
-    const Rring = size*0.37, Rhome0=size*0.34, Rcenter=size*0.15, Ryard=size*0.455;
+    const cornerMap = cornerMapFor(state.numPlayers); // seat -> corner
+    const seatAtCorner = corner => { const i=cornerMap.indexOf(corner); return i>=0?i:null; };
+
+    const Rring = size*(classic?0.31:0.37), Rhome0=size*(classic?0.27:0.34),
+          Rcenter = size*0.15, Ryard = size*(classic?0.38:0.455);
 
     // مركز اللوح
     const hub=document.createElement('div'); hub.className='center-hub';
     hub.style.width=hub.style.height=(Rcenter*2)+'px';
     hub.style.left=(cx-Rcenter)+'px'; hub.style.top=(cy-Rcenter)+'px';
     wrap.appendChild(hub);
-    for(let s=0;s<N;s++){
-      const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
-      const r=Rcenter*0.55;
+    for(let c=0;c<C;c++){
+      const s=seatAtCorner(c); if(s===null) continue;
+      const mid=this.edgePoint(classic,c,0.5,C,Rcenter*0.55);
       const b=document.createElement('div'); b.className='hub-slot';
-      b.style.left=(cx+r*Math.cos(ang)-9)+'px'; b.style.top=(cy+r*Math.sin(ang)-9)+'px';
-      b.style.background=PALETTE[s].hex;
+      b.style.left=(cx+mid.x-9)+'px'; b.style.top=(cy+mid.y-9)+'px';
+      b.style.background=PALETTE[c].hex;
       b.textContent=(state.finished[s]||0);
       wrap.appendChild(b);
     }
 
     // مربعات الدايرة (الطريق المشترك)
-    const cellSize = Math.max(9, Math.min(20, (2*Math.PI*Rring/RL)*0.72));
+    const approxStep = classic ? (8*Rring/RL) : (2*Math.PI*Rring/RL);
+    const cellSize = Math.max(9, Math.min(20, approxStep*0.72));
     for(let i=0;i<RL;i++){
-      const ang=-Math.PI/2 + 2*Math.PI*i/RL;
       const owner=Math.floor(i/CFG.ARM);
-      const isEntry=(i%CFG.ARM===0), isStar=(i%CFG.ARM===Math.floor(CFG.ARM/2));
+      const local=i%CFG.ARM;
+      const p=this.edgePoint(classic, owner, local/CFG.ARM, C, Rring);
+      const isEntry=(local===0), isStar=(local===Math.floor(CFG.ARM/2));
       const el=document.createElement('div'); el.className='ring-cell';
       el.style.width=el.style.height=cellSize+'px';
-      el.style.left=(cx+Rring*Math.cos(ang)-cellSize/2)+'px';
-      el.style.top=(cy+Rring*Math.sin(ang)-cellSize/2)+'px';
-      if(isEntry){ el.style.background=PALETTE[owner].hex; el.classList.add('safe'); }
-      else if(isStar){ el.style.background=hexAlpha(PALETTE[owner].hex,0.4); el.classList.add('safe'); }
+      el.style.left=(cx+p.x-cellSize/2)+'px';
+      el.style.top=(cy+p.y-cellSize/2)+'px';
+      const activeOwner = seatAtCorner(owner)!==null;
+      if(isEntry && activeOwner){ el.style.background=PALETTE[owner].hex; el.classList.add('safe'); }
+      else if(isStar && activeOwner){ el.style.background=hexAlpha(PALETTE[owner].hex,0.4); el.classList.add('safe'); }
       wrap.appendChild(el);
     }
 
-    // أعمدة البيت النهائي
+    // أعمدة البيت النهائي — من نص الضلع/القطاع لجوه المركز
     const homeCellSize=cellSize*1.05;
-    for(let s=0;s<N;s++){
-      const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
+    for(let c=0;c<C;c++){
+      if(seatAtCorner(c)===null) continue;
+      const mid=this.edgePoint(classic,c,0.5,C,1);
       for(let h=0;h<CFG.HOME_STEPS;h++){
         const t=(h+1)/(CFG.HOME_STEPS+1);
-        const R=Rhome0 - t*(Rhome0-Rcenter);
+        const R = Rhome0 - t*(Rhome0-Rcenter);
         const el=document.createElement('div'); el.className='home-cell';
         el.style.width=el.style.height=homeCellSize+'px';
-        el.style.left=(cx+R*Math.cos(ang)-homeCellSize/2)+'px';
-        el.style.top=(cy+R*Math.sin(ang)-homeCellSize/2)+'px';
-        el.style.background=hexAlpha(PALETTE[s].hex,0.55);
+        el.style.left=(cx+mid.x*R-homeCellSize/2)+'px';
+        el.style.top=(cy+mid.y*R-homeCellSize/2)+'px';
+        el.style.background=hexAlpha(PALETTE[c].hex,0.55);
         wrap.appendChild(el);
       }
     }
 
-    // بيوت اللاعبين
-    const yardSize = Math.max(38, Math.min(76, (2*Math.PI*Ryard/N)*0.72));
-    const yardPos=[];
-    for(let s=0;s<N;s++){
-      const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
-      const left=cx+Ryard*Math.cos(ang)-yardSize/2, top=cy+Ryard*Math.sin(ang)-yardSize/2;
-      yardPos.push({left,top,size:yardSize});
+    // بيوت اللاعبين (الزوايا/الأركان)
+    const yardSize = classic ? Math.max(46, Math.min(92, size*0.24))
+                              : Math.max(38, Math.min(76, (2*Math.PI*Ryard/C)*0.72));
+    const yardPos={};
+    for(let c=0;c<C;c++){
+      const s=seatAtCorner(c);
+      const p=this.cornerPoint(classic,c,C,Ryard);
+      const left=cx+p.x-yardSize/2, top=cy+p.y-yardSize/2;
+      if(s!==null) yardPos[c]={left,top,size:yardSize};
       const el=document.createElement('div'); el.className='yard-badge';
       el.style.width=el.style.height=yardSize+'px';
       el.style.left=left+'px'; el.style.top=top+'px';
-      el.style.background=hexAlpha(PALETTE[s].hex,0.28);
-      el.style.borderColor=PALETTE[s].hex;
+      if(s!==null){
+        el.style.background=hexAlpha(PALETTE[c].hex,0.28);
+        el.style.borderColor=PALETTE[c].hex;
+      } else {
+        el.style.background='rgba(255,255,255,.04)';
+        el.style.borderColor='rgba(255,255,255,.18)';
+        el.style.borderStyle='dashed';
+      }
       wrap.appendChild(el);
 
-      const label=document.createElement('div'); label.className='seat-name-tag';
-      const lr = Ryard + yardSize*0.62;
-      label.style.left=(cx+lr*Math.cos(ang))+'px';
-      label.style.top=(cy+lr*Math.sin(ang))+'px';
-      label.style.color=PALETTE[s].hex;
-      label.textContent = (state.seats[s] && state.seats[s].name) ? state.seats[s].name.slice(0,10) : ('لاعب '+(s+1));
-      wrap.appendChild(label);
+      if(s!==null){
+        const label=document.createElement('div'); label.className='seat-name-tag';
+        const lp=this.cornerPoint(classic,c,C,Ryard+yardSize*0.62);
+        label.style.left=(cx+lp.x)+'px';
+        label.style.top=(cy+lp.y)+'px';
+        label.style.color=PALETTE[c].hex;
+        label.textContent = (state.seats[s] && state.seats[s].name) ? state.seats[s].name.slice(0,10) : ('لاعب '+(s+1));
+        wrap.appendChild(label);
+      }
     }
 
     // القطع
     const tokenSize=Math.max(12,Math.min(22,cellSize*1.15));
-    const key=(s,pos)=>{
+    const key=(corner,pos)=>{
       if(pos===-1) return null;
-      if(pos>=FIN) return 'fin:'+s;
-      if(pos<RL-1) return 'ring:'+((s*CFG.ARM+pos)%RL);
-      return 'home:'+s+':'+(pos-(RL-1));
+      if(pos>=FIN) return 'fin:'+corner;
+      if(pos<RL-1) return 'ring:'+((corner*CFG.ARM+pos)%RL);
+      return 'home:'+corner+':'+(pos-(RL-1));
     };
     const groups={};
-    for(let s=0;s<N;s++){
+    for(let s=0;s<state.numPlayers;s++){
       if(!state.tokens[s]) continue;
-      state.tokens[s].forEach((pos,ti)=>{ const k=key(s,pos); if(k){ (groups[k]=groups[k]||[]).push(s+':'+ti); } });
+      const corner=cornerMap[s];
+      state.tokens[s].forEach((pos,ti)=>{ const k=key(corner,pos); if(k){ (groups[k]=groups[k]||[]).push(s+':'+ti); } });
     }
     const offs=[[0,0],[7,0],[-7,0],[0,7],[0,-7],[5,5],[-5,5],[5,-5]];
-    for(let s=0;s<N;s++){
+    for(let s=0;s<state.numPlayers;s++){
       if(!state.tokens[s]) continue;
+      const corner=cornerMap[s];
       state.tokens[s].forEach((pos,ti)=>{
         const el=document.createElement('div'); el.className='token';
         el.style.width=el.style.height=tokenSize+'px';
-        el.style.background=`radial-gradient(circle at 32% 28%, #fff8, transparent 45%), ${PALETTE[s].hex}`;
+        el.style.background=`radial-gradient(circle at 32% 28%, #fff8, transparent 45%), ${PALETTE[corner].hex}`;
         let x,y;
         if(pos===-1){
           const slot=[[-1,-1],[1,-1],[-1,1],[1,1]][ti];
-          const yp=yardPos[s];
+          const yp=yardPos[corner];
           x = yp.left+yp.size/2 + slot[0]*yp.size*0.23 - tokenSize/2;
           y = yp.top+yp.size/2 + slot[1]*yp.size*0.23 - tokenSize/2;
         } else if(pos>=FIN){
-          const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL; const r=Rcenter*0.55;
-          const grp=groups['fin:'+s]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
+          const mid=this.edgePoint(classic,corner,0.5,C,Rcenter*0.55);
+          const grp=groups['fin:'+corner]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
           const off=offs[gi%offs.length];
-          x=cx+r*Math.cos(ang)+off[0]-tokenSize/2; y=cy+r*Math.sin(ang)+off[1]-tokenSize/2;
+          x=cx+mid.x+off[0]-tokenSize/2; y=cy+mid.y+off[1]-tokenSize/2;
         } else if(pos<RL-1){
-          const abs=(s*CFG.ARM+pos)%RL; const ang=-Math.PI/2 + 2*Math.PI*abs/RL;
+          const abs=(corner*CFG.ARM+pos)%RL;
+          const owner=Math.floor(abs/CFG.ARM), local=abs%CFG.ARM;
+          const p=this.edgePoint(classic,owner,local/CFG.ARM,C,Rring);
           const grp=groups['ring:'+abs]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
           const off=offs[gi%offs.length];
-          x=cx+Rring*Math.cos(ang)+off[0]-tokenSize/2; y=cy+Rring*Math.sin(ang)+off[1]-tokenSize/2;
+          x=cx+p.x+off[0]-tokenSize/2; y=cy+p.y+off[1]-tokenSize/2;
         } else {
-          const hIdx=pos-(RL-1); const t=(hIdx+1)/(CFG.HOME_STEPS+1); const R=Rhome0-t*(Rhome0-Rcenter);
-          const ang=-Math.PI/2 + 2*Math.PI*(s*CFG.ARM)/RL;
-          x=cx+R*Math.cos(ang)-tokenSize/2; y=cy+R*Math.sin(ang)-tokenSize/2;
+          const hIdx=pos-(RL-1); const t=(hIdx+1)/(CFG.HOME_STEPS+1);
+          const R=Rhome0-t*(Rhome0-Rcenter);
+          const mid=this.edgePoint(classic,corner,0.5,C,1);
+          x=cx+mid.x*R-tokenSize/2; y=cy+mid.y*R-tokenSize/2;
         }
         el.style.left=x+'px'; el.style.top=y+'px';
         if(Game.isMovable(s,ti)){ el.classList.add('movable'); el.onclick=()=>Game.onTokenTap(s,ti); }
