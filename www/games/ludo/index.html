@@ -82,24 +82,40 @@
   .seat-chip .dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto; box-shadow:0 0 0 1px rgba(0,0,0,.4);}
   .seat-chip.active{ border-color:var(--brass-light); box-shadow:0 0 6px rgba(228,200,120,.6); }
   .seat-chip.out{ opacity:.5; }
-  .board-area{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:6px; background: radial-gradient(circle at 50% 45%, var(--wood-light) 0%, var(--wood) 55%, var(--wood-dark) 100%); }
+  .board-area{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:38px 6px; background: radial-gradient(circle at 50% 45%, var(--wood-light) 0%, var(--wood) 55%, var(--wood-dark) 100%); }
   .ludo-board{ position:relative; width:min(94vw, 84vh, 440px); aspect-ratio:1/1; border-radius:50%; background: radial-gradient(circle at 50% 50%, #6b4326 0%, #43290f 78%, #2a1608 100%); box-shadow: inset 0 0 0 4px rgba(0,0,0,.4), inset 0 0 30px rgba(0,0,0,.55), 0 6px 18px rgba(0,0,0,.5); }
+  .ludo-board.classic{ border-radius:12px; background:#efe3c4; box-shadow: inset 0 0 0 5px #6b4a29, inset 0 0 0 7px rgba(0,0,0,.22), 0 6px 18px rgba(0,0,0,.5); }
   .ring-cell{ position:absolute; border-radius:3px; background: var(--ivory-shade); box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
-  .ring-cell.safe::after{ content:'★'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:60%; color:rgba(0,0,0,.45); }
+  .ring-cell.safe::after{content:'★';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80%;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(60,35,10,.55), 0 0 3px rgba(255,255,255,.4);font-weight:900;}
+  .ring-cell.dir-arrow::after{content:attr(data-arrow);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:68%;line-height:1;color:#a89972;font-weight:800;text-shadow:0 1px 0 rgba(255,255,255,.45);}
+  /* تقسيمة اللوح الكلاسيكية: مربعات واضحة زي ليدو الأصلي */
+  .ludo-board.classic .ring-cell,.ludo-board.classic .home-cell{ border-radius:2px; box-shadow:inset 0 0 0 1px rgba(74,55,35,.30); }
+  .ludo-board.classic .yard-block{ border-radius:0; box-shadow:inset 0 0 0 1px rgba(74,55,35,.28); }
+  .ludo-board.classic .yard-inner{ border-radius:12px; box-shadow:inset 0 0 0 3px rgba(255,255,255,.7), inset 0 0 0 5px rgba(0,0,0,.12); }
+  .ludo-board.classic .yard-pip{ background:rgba(0,0,0,.16); box-shadow:inset 0 1px 4px rgba(0,0,0,.28); }
   .home-cell{ position:absolute; border-radius:3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.3); }
   .center-hub{ position:absolute; border-radius:50%; background: radial-gradient(circle, #f3e6c8 0%, #d9c290 60%, #b89a5c 100%); box-shadow: inset 0 0 0 2px rgba(0,0,0,.4), 0 0 14px rgba(0,0,0,.4); }
+  .center-hub.classic{ border-radius:4px; background:#efe3c4; box-shadow: inset 0 0 0 2px rgba(0,0,0,.35), 0 1px 4px rgba(0,0,0,.4); overflow:hidden; }
+  .center-tri{ position:absolute; inset:0; }
   .hub-slot{ position:absolute; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.5); }
   .yard-badge{ position:absolute; border-radius:50%; border:2px solid; box-shadow: inset 0 0 10px rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.4); }
+  .yard-block{ position:absolute; border-radius:10px; box-shadow: inset 0 0 0 2px rgba(0,0,0,.2), 0 2px 5px rgba(0,0,0,.35); }
+  .yard-inner{ position:absolute; border-radius:8px; background:rgba(255,255,255,.93); box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+  .yard-pip{ position:absolute; border-radius:50%; background:rgba(0,0,0,.13); box-shadow: inset 0 0 3px rgba(0,0,0,.3); }
   .seat-name-tag{ position:absolute; transform:translate(-50%,-50%); font-size:9px; font-weight:800; text-shadow:0 1px 2px rgba(0,0,0,.8); white-space:nowrap; pointer-events:none; }
   .token{ position:absolute; border-radius:50%; box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.5), 0 2px 4px rgba(0,0,0,.55); border:1px solid rgba(0,0,0,.35); transition:left .28s ease, top .28s ease; z-index:5; }
   .token.movable{ z-index:8; cursor:pointer; animation: tokenPulse 1s infinite; }
   @keyframes tokenPulse{ 0%,100%{ box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.5), 0 0 0 2px #fff, 0 0 10px 3px rgba(255,255,255,.85);} 50%{ box-shadow: inset 0 -2px 3px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.5), 0 0 0 2px #fff, 0 0 3px 1px rgba(255,255,255,.4);} }
-  .dice-area{ flex:0 0 auto; display:flex; align-items:center; justify-content:center; gap:14px; padding:8px 10px max(10px, env(safe-area-inset-bottom)); border-top:1px solid rgba(200,155,60,.25); background:rgba(0,0,0,.2); }
-  .die{ width:56px; height:56px; border-radius:12px; background:linear-gradient(160deg,#fffdf6,#e7ddc6); box-shadow: inset 0 -3px 4px rgba(0,0,0,.15), 0 4px 8px rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; font-size:30px; color:#2a1b06; border:2px solid #8f6e26; }
-  .die.spin{ animation: dieSpin .12s linear infinite; }
-  @keyframes dieSpin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
-  .roll-btn{ min-width:150px; }
-  .dice-hint{ font-size:11px; color:var(--text-muted); text-align:center; flex:0 0 100%; margin-top:2px; }
+  /* الزهر الخاص بكل لاعب: يظهر بجوار بيته مثل ألعاب لودو الحديثة */
+  .dice-area{display:none!important;}
+  .player-die{position:absolute;width:clamp(42px,11vw,58px);height:clamp(42px,11vw,58px);perspective:180px;transform-style:preserve-3d;border-radius:15px;background:linear-gradient(145deg,#fffef9,#d9d4c8);border:3px solid var(--die-color,#b78a31);box-shadow:0 3px 0 rgba(0,0,0,.25),0 6px 12px rgba(0,0,0,.35),inset 0 1px 4px #fff;display:flex;align-items:center;justify-content:center;font-size:clamp(23px,7vw,34px);color:#26211a;z-index:30;cursor:default;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease;}
+  .player-die.mine-turn{cursor:pointer;animation:dieGlow 1s ease-in-out infinite;}
+  .player-die.disabled{filter:grayscale(.55) brightness(.72);opacity:.72;}
+  .player-die.rolling{animation:none;filter:none!important;opacity:1!important;}
+  .player-die-label{position:absolute;top:100%;margin-top:3px;font-size:8px;font-weight:900;white-space:nowrap;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none;}
+  @keyframes dieGlow{0%,100%{transform:scale(1);box-shadow:0 3px 0 rgba(0,0,0,.25),0 0 0 0 rgba(255,255,255,.15),0 6px 12px rgba(0,0,0,.35)}50%{transform:scale(1.07);box-shadow:0 3px 0 rgba(0,0,0,.25),0 0 0 5px color-mix(in srgb,var(--die-color) 45%,transparent),0 6px 14px rgba(0,0,0,.45)}}
+  @keyframes dieRoll{from{transform:rotate(0deg) scale(1.06)}to{transform:rotate(180deg) scale(1.06)}}
+  .turn-hint-board{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);z-index:20;background:rgba(20,14,8,.78);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:4px 9px;font-size:9px;color:#fff;white-space:nowrap;pointer-events:none;}
 
   /* ---------- شبكة/لوبي ---------- */
   .field{ width:100%; padding:12px; border-radius:6px; border:1px solid var(--brass-dark); background:rgba(0,0,0,.25); color:var(--text-light); font-family:'Cairo'; font-size:15px; }
@@ -110,6 +126,39 @@
   .ready-dot{width:8px; height:8px; border-radius:50%; background:#6a5a3a;}
   .ready-dot.on{background:#7bd67b;}
   .qr-box{ background:#fff; padding:8px; border-radius:10px; width:240px; height:240px; margin:8px auto; display:flex; align-items:center; justify-content:center; }
+
+  /* تحسينات حركة ليدو */
+  .ludo-board.classic{ isolation:isolate; }
+  .ludo-board.classic::before{content:'';position:absolute;inset:-6px;background:#f4eee2;border-radius:14px;z-index:-1;box-shadow:0 2px 10px rgba(0,0,0,.28);}
+  .ludo-board.classic .ring-cell,.ludo-board.classic .home-cell{box-shadow:inset 0 0 0 1px rgba(74,55,35,.14)!important;}
+  .ludo-board.classic .ring-cell.safe{
+    filter:none; border-radius:22%!important;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(80,52,20,.55) 0 9%, transparent 10%),
+      radial-gradient(circle at 82% 18%, rgba(80,52,20,.55) 0 9%, transparent 10%),
+      radial-gradient(circle at 18% 82%, rgba(80,52,20,.55) 0 9%, transparent 10%),
+      radial-gradient(circle at 82% 82%, rgba(80,52,20,.55) 0 9%, transparent 10%),
+      linear-gradient(155deg,#dcbd8d,#b78d54)!important;
+    box-shadow:inset 0 0 0 1px rgba(74,45,15,.4),inset 2px 2px 3px rgba(255,238,205,.55),inset -2px -3px 5px rgba(60,35,10,.35), 0 1px 2px rgba(0,0,0,.3)!important;
+  }
+  .token{--token-color:#fff;transition:left .16s ease,top .16s ease,width .16s ease,height .16s ease;}
+  .token.movable{animation:tokenColorPulse 1s ease-in-out infinite;}
+  @keyframes tokenColorPulse{0%,100%{filter:brightness(1.15);box-shadow:inset 0 -2px 3px rgba(0,0,0,.35),inset 0 2px 2px rgba(255,255,255,.55),0 0 0 2px color-mix(in srgb,var(--token-color) 48%,transparent),0 0 12px 4px color-mix(in srgb,var(--token-color) 42%,transparent)}50%{filter:brightness(1.35);box-shadow:inset 0 -2px 3px rgba(0,0,0,.35),inset 0 2px 2px rgba(255,255,255,.55),0 0 0 4px color-mix(in srgb,var(--token-color) 70%,transparent),0 0 22px 8px color-mix(in srgb,var(--token-color) 62%,transparent)}}
+  .player-die.rolling{animation:none!important;filter:none!important;opacity:1!important;}
+  .dice-cube{width:78%;height:78%;position:relative;transform-style:preserve-3d;animation:cubeSpin .16s linear infinite;}
+  .cube-face{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;background:linear-gradient(135deg,#fff 0%,#f4f1e9 48%,#d6d0c4 100%);border:1px solid rgba(62,51,38,.30);border-radius:9px;backface-visibility:hidden;box-shadow:inset 3px 3px 6px rgba(255,255,255,.95),inset -3px -3px 7px rgba(70,60,48,.20);}
+  .cube-face i,.stone-face i{width:36%;aspect-ratio:1;border-radius:50%;visibility:hidden;background:#1a1712;box-shadow:inset 4px 5px 7px rgba(0,0,0,.9),inset -2px -2px 4px rgba(255,255,255,.16),0 1px 0 rgba(255,255,255,.2);}
+  .cube-face i.on,.stone-face i.on{visibility:visible;}
+
+  /* حجر نرد حقيقي: جسم سميك بحواف مدورة ونقط محفورة للداخل */
+  .dice-stone{width:80%;height:80%;display:flex;align-items:center;justify-content:center;transform:rotate(-2deg);filter:drop-shadow(2px 5px 3px rgba(0,0,0,.30));}
+  .stone-face{position:relative;width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;border-radius:12px;background:linear-gradient(135deg,#fffefa 0%,#f2eee5 48%,#cfc7b9 100%);border:1px solid rgba(66,54,39,.42);box-shadow:inset 4px 4px 7px rgba(255,255,255,.98),inset -5px -5px 8px rgba(73,62,47,.22),2px 3px 0 #b9b0a2,4px 6px 8px rgba(0,0,0,.18);}
+  /* حافة داخلية خفيفة تخلي الحجر مجسم */
+  .stone-face::before{content:'';position:absolute;inset:5%;border-radius:9px;border:1px solid rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(94,80,61,.10);pointer-events:none;}
+  .stone-face i{position:relative;z-index:1;width:40%;background:radial-gradient(circle at 44% 40%,#171512 0%,#0b0a08 55%,#050403 100%);box-shadow:inset 5px 6px 9px #000,inset -3px -3px 6px rgba(255,255,255,.16),0 1px 0 rgba(255,255,255,.25);}
+  .cube-face.f1{transform:translateZ(18px)}.cube-face.f6{transform:rotateY(180deg) translateZ(18px)}.cube-face.f2{transform:rotateY(90deg) translateZ(18px)}.cube-face.f5{transform:rotateY(-90deg) translateZ(18px)}.cube-face.f3{transform:rotateX(90deg) translateZ(18px)}.cube-face.f4{transform:rotateX(-90deg) translateZ(18px)}
+  @keyframes cubeSpin{0%{transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg)}35%{transform:rotateX(160deg) rotateY(130deg) rotateZ(25deg)}70%{transform:rotateX(320deg) rotateY(260deg) rotateZ(55deg)}100%{transform:rotateX(480deg) rotateY(390deg) rotateZ(80deg)}}
+
 </style>
 </head>
 <body>
@@ -123,7 +172,7 @@
       <p class="brand-tag">من اتنين لحد تمانية لاعيبة على نفس اللوح</p>
       <div class="menu-btns">
         <button class="plaque-btn primary" id="resumeBtn" style="display:none;" onclick="Nav.resumeMatch()"><span class="ic">⟳</span> استكمال اللعبة السابقة</button>
-        <button class="plaque-btn" onclick="Nav.go('newgame')"><span class="ic">▶</span> لعبة جديدة (مع الكمبيوتر)</button>
+        <button class="plaque-btn" onclick="Nav.go('newgame')"><span class="ic">▶</span> لعبة جديدة</button>
         <button class="plaque-btn" onclick="MPUI.openHub()"><span class="ic">🎮</span> العب مع صحابك</button>
         <button class="plaque-btn" onclick="Nav.go('settings')"><span class="ic">⚙</span> الإعدادات</button>
         <button class="plaque-btn" onclick="Nav.go('rules')"><span class="ic">؟</span> طريقة اللعب</button>
@@ -139,12 +188,23 @@
         <button class="back-btn" onclick="Nav.go('menu')">›</button>
         <h2 class="subpage-title">لعبة جديدة</h2>
       </div>
-      <p style="color:var(--text-muted); font-size:14px; margin:0 0 16px;">هتلعب إنت، والباقي هيتحكم فيهم الكمبيوتر.</p>
+      <p style="color:var(--text-muted); font-size:14px; margin:0 0 16px;" id="newgameHint">هتلعب إنت، والباقي هيتحكم فيهم الكمبيوتر.</p>
+      <div class="setting-group">
+        <div class="setting-label">طريقة اللعب</div>
+        <div class="choice-row" id="soloModeRow">
+          <button class="choice-btn" data-val="ai" onclick="Nav.setSoloMode('ai')">مع الكمبيوتر</button>
+          <button class="choice-btn" data-val="local" onclick="Nav.setSoloMode('local')">مع صحابك</button>
+        </div>
+      </div>
       <div class="setting-group">
         <div class="setting-label">عدد أماكن اللعب على الأرض</div>
         <div class="choice-row" id="soloCountRow"></div>
       </div>
-      <div class="setting-group">
+      <div class="setting-group" id="soloColorGroup">
+        <div class="setting-label">لونك</div>
+        <div class="choice-row" id="soloColorRow"></div>
+      </div>
+      <div class="setting-group" id="soloDiffGroup">
         <div class="setting-label">مستوى الكمبيوتر</div>
         <div class="choice-row" id="soloDiffRow">
           <button class="choice-btn" data-val="easy" onclick="Settings.setDiff('easy')">سهل</button>
@@ -341,11 +401,6 @@
       <div class="board-area">
         <div class="ludo-board" id="ludoBoard"></div>
       </div>
-      <div class="dice-area">
-        <div class="die" id="dieFace" onclick="Game.requestRoll()">🎲</div>
-        <button class="plaque-btn primary roll-btn" id="rollBtn" onclick="Game.requestRoll()">ارمِ الزهر</button>
-        <div class="dice-hint" id="diceHint"></div>
-      </div>
       <div class="result-overlay" id="resultOverlay"><div class="result-card" id="resultCard"></div></div>
       <div class="result-overlay" id="gameMenuOverlay"><div class="result-card" id="gameMenuCard"></div></div>
       <div class="result-overlay" id="netUsersOverlay"><div class="result-card" id="netUsersCard"></div></div>
@@ -369,12 +424,12 @@
    ليدو ع القهوة — من 2 لحد 8 لاعبين، سولو ضد الكمبيوتر أو أونلاين/أوفلاين
    ================================================================== */
 
-const CFG = { ARM: 8, HOME_STEPS: 5 };
+const CFG = { ARM: 13, HOME_STEPS: 5 };
 const PALETTE = [
-  { id:'red',    hex:'#d9463b', name:'أحمر'    },
-  { id:'blue',   hex:'#2f6fed', name:'أزرق'    },
-  { id:'yellow', hex:'#eec13b', name:'أصفر'    },
   { id:'green',  hex:'#3a9d5d', name:'أخضر'    },
+  { id:'yellow', hex:'#eec13b', name:'أصفر'    },
+  { id:'blue',   hex:'#2f6fed', name:'أزرق'    },
+  { id:'red',    hex:'#d9463b', name:'أحمر'    },
   { id:'purple', hex:'#9660d9', name:'بنفسجي'  },
   { id:'orange', hex:'#e8823a', name:'برتقالي' },
   { id:'teal',   hex:'#2bb0a6', name:'تركواز'  },
@@ -391,17 +446,22 @@ function hexAlpha(hex, a){
 function cornerCountFor(n){ return n<=4 ? 4 : n; }
 function cornerMapFor(n){
   if(n<=4){
-    return ([[],[],[0,2],[0,1,2],[0,1,2,3]])[n] || Array.from({length:n},(_,i)=>i);
+    // النمط الأساسي: اتنين قصاد بعض، تلاتة ورا بعض، أربعة الوضع العادي.
+    // بندوّر النمط على حسب اللون اللي المستخدم اختاره عشان يبقى دايماً موجود.
+    const base = ([[],[],[0,2],[0,1,2],[0,1,2,3]])[n] || Array.from({length:n},(_,i)=>i);
+    const start = state.netMode ? 0 : (state.myColor||0);
+    return base.map(c=>(c+start)%4);
   }
   return Array.from({length:n},(_,i)=>i);
 }
 
 const state = {
   screen:'menu', numPlayers:4, difficulty:'medium',
+  soloMode:'ai', myColor:0, localAllHuman:false,
   seats:[], mySeat:0, netMode:false,
   tokens:[], finished:[], turnSeat:0,
   dice:null, sixStreak:0, movableList:[], awaitingMove:false,
-  winnerSeat:null, gameOver:false
+  winnerSeat:null, gameOver:false, aiBusy:false, aiTimer:null, rolling:false, rollingSeat:null
 };
 
 /* ---------------------- تنقّل بين الشاشات ---------------------- */
@@ -427,7 +487,30 @@ const Nav = {
       row.appendChild(b);
     }
     document.querySelectorAll('#soloDiffRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===state.difficulty));
+    document.querySelectorAll('#soloModeRow .choice-btn').forEach(b=>b.classList.toggle('sel', b.dataset.val===state.soloMode));
+    const diffGroup=document.getElementById('soloDiffGroup');
+    if(diffGroup) diffGroup.style.display = state.soloMode==='local' ? 'none' : '';
+    const hint=document.getElementById('newgameHint');
+    if(hint) hint.textContent = state.soloMode==='local' ? 'هتلعبوا يدوي كل واحد ياخد دوره على نفس الجهاز، من غير كمبيوتر.' : 'هتلعب إنت، والباقي هيتحكم فيهم الكمبيوتر.';
+    const colorGroup=document.getElementById('soloColorGroup'), colorRow=document.getElementById('soloColorRow');
+    if(colorGroup && colorRow){
+      if(state.numPlayers<=4){
+        colorGroup.style.display='';
+        colorRow.innerHTML='';
+        for(let c=0;c<4;c++){
+          const b=document.createElement('button');
+          b.className='choice-btn'+(c===state.myColor?' sel':'');
+          b.style.color=PALETTE[c].hex;
+          b.textContent=PALETTE[c].name;
+          b.onclick=()=>{ state.myColor=c; Nav.renderSoloCount(); };
+          colorRow.appendChild(b);
+        }
+      } else {
+        colorGroup.style.display='none';
+      }
+    }
   },
+  setSoloMode(m){ state.soloMode=m; Nav.renderSoloCount(); },
   startSoloConfirm(){
     const saved = Storage.load();
     if(saved){
@@ -534,10 +617,17 @@ const Game = {
   cornerOf(seat){ return cornerMapFor(state.numPlayers)[seat]; },
   ringLen(){ return CFG.ARM*this.cornerCount(); },
   finishVal(){ return this.ringLen()-1+CFG.HOME_STEPS; },
+  isSafeAbs(abs){ const path=Board.classicPath(); const stars=['6,2','12,6','8,12','2,8','1,6','8,1','13,8','6,13']; const vis=stars.map(k=>path.findIndex(p=>p.join(',')===k)); return vis.some(v=>Board.classicLogicIndex(abs,path.length)===v); },
 
   startSolo(n){
     state.numPlayers=n; state.netMode=false; state.mySeat=0;
-    state.seats = Array.from({length:n},(_,i)=> i===0 ? {type:'human',name:'أنت',controller:'me'} : {type:'ai',name:'كمبيوتر '+i,controller:'ai'});
+    state.localAllHuman = state.soloMode==='local';
+    if(state.localAllHuman){
+      // مع صحابك: مفيش كمبيوتر خالص، كل الأماكن بتتلعب يدوي بالتبادل على نفس الجهاز.
+      state.seats = Array.from({length:n},(_,i)=> ({type:'human', name:'لاعب '+(i+1), controller:'me'}));
+    } else {
+      state.seats = Array.from({length:n},(_,i)=> i===0 ? {type:'human',name:'أنت',controller:'me'} : {type:'ai',name:'كمبيوتر '+i,controller:'ai'});
+    }
     this.resetBoard();
     Nav.go('game');
     Board.build(); Render.all();
@@ -549,8 +639,8 @@ const Game = {
     const n=state.numPlayers;
     state.tokens = Array.from({length:n},()=>[-1,-1,-1,-1]);
     state.finished = Array.from({length:n},()=>0);
-    state.turnSeat=0; state.dice=null; state.sixStreak=0; state.movableList=[]; state.awaitingMove=false;
-    state.winnerSeat=null; state.gameOver=false;
+    state.turnSeat=0; state.dice=null; state.lastDice=Array.from({length:n},()=>null); state.sixStreak=0; state.movableList=[]; state.awaitingMove=false;
+    state.winnerSeat=null; state.gameOver=false; state.aiBusy=false; state.rolling=false; state.rollingSeat=null; if(state.aiTimer){clearTimeout(state.aiTimer);state.aiTimer=null;}
   },
 
   syncIfHost(){ if(state.netMode && typeof LudoNet!=='undefined' && LudoNet.role==='host') LudoNet.hostSync(); },
@@ -564,111 +654,109 @@ const Game = {
   },
 
   requestRoll(){
-    if(state.gameOver || state.awaitingMove) return;
-    if(state.turnSeat!==state.mySeat) return;
+    if(state.gameOver || state.awaitingMove || state.rolling) return;
+    if(!state.localAllHuman && state.turnSeat!==state.mySeat) return;
     if(state.netMode && typeof LudoNet!=='undefined' && LudoNet.role==='guest'){ LudoNet.sendAction('roll'); return; }
     this.rollDice();
   },
 
-  rollDice(){
-    if(state.awaitingMove || state.gameOver) return;
+  async rollDice(){
+    if(state.awaitingMove || state.gameOver || state.rolling) return;
+    state.aiBusy=false;
+    const seat=state.turnSeat;
+    state.rolling=true; state.rollingSeat=seat;
+    Render.all();
+    // مكعب الزهر يدور ثانية واحدة كاملة قبل ظهور الرقم.
+    await new Promise(r=>setTimeout(r,1000));
+    if(state.gameOver || state.turnSeat!==seat){state.rolling=false;state.rollingSeat=null;Render.all();return;}
     const d = 1+Math.floor(Math.random()*6);
-    state.dice=d;
+    state.rolling=false; state.rollingSeat=null; state.dice=d;
+    if(!Array.isArray(state.lastDice)) state.lastDice=Array.from({length:state.numPlayers},()=>null);
+    state.lastDice[seat]=d;
     state.sixStreak = (d===6) ? state.sixStreak+1 : 0;
     if(state.sixStreak>=3){
-      state.sixStreak=0; state.dice=null;
-      Render.all();
-      Toast.show('٣ سِتّات ورا بعض – الدور بيعدي');
-      this.finishTurn(false);
-      return;
+      state.sixStreak=0; state.dice=null; Render.all(); Toast.show('٣ سِتّات ورا بعض – الدور بيعدي'); this.finishTurn(false); return;
     }
-    const seat=state.turnSeat;
     const movable=[];
-    for(let t=0;t<4;t++){ if(this.tokenMovable(seat,t,d)) movable.push(t); }
+    for(let t=0;t<4;t++) if(this.tokenMovable(seat,t,d)) movable.push(t);
     state.movableList=movable;
-    if(movable.length===0){
-      Render.all();
-      this.syncIfHost();
-      setTimeout(()=>{ state.dice=null; this.finishTurn(d===6); }, 750);
-      return;
-    }
-    state.awaitingMove=true;
-    Render.all();
-    this.syncIfHost();
+    if(movable.length===0){Render.all();this.syncIfHost();setTimeout(()=>{state.dice=null;this.finishTurn(d===6);},750);return;}
+    state.awaitingMove=true; Render.all(); this.syncIfHost();
     if(state.seats[seat].type==='ai' && (!state.netMode || (typeof LudoNet!=='undefined' && LudoNet.role==='host'))){
-      setTimeout(()=>AI.chooseAndMove(seat, movable.slice(), d), 550);
+      setTimeout(()=>AI.chooseAndMove(seat,movable.slice(),d),550);
     }
   },
-
   onTokenTap(seat,tok){
     if(state.gameOver || !state.awaitingMove) return;
-    if(seat!==state.mySeat || state.turnSeat!==state.mySeat) return;
+    if(state.localAllHuman){ if(seat!==state.turnSeat) return; }
+    else if(seat!==state.mySeat || state.turnSeat!==state.mySeat) return;
     if(state.netMode && typeof LudoNet!=='undefined' && LudoNet.role==='guest'){ LudoNet.sendAction('move', {tok}); return; }
     this.applyMove(seat,tok);
   },
 
   isMovable(seat,tok){
-    return state.awaitingMove && seat===state.turnSeat && seat===state.mySeat && state.movableList.includes(tok);
+    const seatOk = state.localAllHuman ? seat===state.turnSeat : seat===state.mySeat;
+    return state.awaitingMove && seat===state.turnSeat && seatOk && state.movableList.includes(tok);
   },
 
-  applyMove(seat,t){
-    if(!state.awaitingMove) return;
-    if(!state.movableList.includes(t)) return;
-    const d=state.dice;
-    const RL=this.ringLen(), FIN=this.finishVal();
-    let pos = state.tokens[seat][t];
-    pos = (pos===-1) ? 0 : pos+d;
-    let captured=false, reachedFinish=false;
-    if(pos===FIN){ reachedFinish=true; state.finished[seat]++; }
-    else if(pos<RL-1){
-      const corner=this.cornerOf(seat);
-      const abs=(corner*CFG.ARM+pos)%RL;
-      const isSafe = (abs%CFG.ARM===0) || (abs%CFG.ARM===Math.floor(CFG.ARM/2));
-      if(!isSafe){
-        for(let s2=0;s2<state.numPlayers;s2++){
-          if(s2===seat) continue;
+  async applyMove(seat,t){
+    if(!state.awaitingMove || !state.movableList.includes(t)) return;
+    const d=state.dice, RL=this.ringLen(), FIN=this.finishVal();
+    let pos=state.tokens[seat][t];
+    state.awaitingMove=false; state.movableList=[];
+    // خروج من البيت على أول بلاطة، ثم الحركة خطوة بخطوة.
+    if(pos===-1){ state.tokens[seat][t]=0; Render.all(); await new Promise(r=>setTimeout(r,180)); }
+    else{
+      for(let step=1;step<=d;step++){
+        state.tokens[seat][t]=pos+step; Render.all();
+        await new Promise(r=>setTimeout(r,150));
+      }
+    }
+    pos=state.tokens[seat][t];
+    let captured=false, reachedFinish=pos===FIN;
+    if(reachedFinish) state.finished[seat]++;
+    else if(pos>=0 && pos<RL-1){
+      const corner=this.cornerOf(seat), abs=(corner*CFG.ARM+pos)%RL;
+      // الأمان في بلاطات النجمة فقط.
+      if(!this.isSafeAbs(abs)){
+        for(let s2=0;s2<state.numPlayers;s2++) if(s2!==seat){
           const c2=this.cornerOf(s2);
           for(let t2=0;t2<4;t2++){
             const p2=state.tokens[s2][t2];
-            if(p2>=0 && p2<RL-1 && (c2*CFG.ARM+p2)%RL===abs){ state.tokens[s2][t2]=-1; captured=true; }
+            if(p2>=0 && p2<RL-1 && (c2*CFG.ARM+p2)%RL===abs){state.tokens[s2][t2]=-1;captured=true;}
           }
         }
       }
     }
-    state.tokens[seat][t]=pos;
-    state.awaitingMove=false; state.movableList=[];
-    const rolledSix = state.dice===6; state.dice=null;
-
-    if(state.finished[seat]===4){
-      state.gameOver=true; state.winnerSeat=seat;
-      Render.all(); Render.showResult();
-      this.syncIfHost();
-      Storage.clear();
-      return;
-    }
-    Render.all();
-    if(captured) Toast.show('أكلت قطعة! 😈');
-    if(reachedFinish) Toast.show('قطعة وصلت البيت 🏠');
-    this.finishTurn(rolledSix || captured || reachedFinish);
+    const rolledSix=state.dice===6; state.dice=null;
+    if(state.finished[seat]===4){state.gameOver=true;state.winnerSeat=seat;Render.all();Render.showResult();this.syncIfHost();Storage.clear();return;}
+    Render.all(); if(captured)Toast.show('أكلت قطعة! 😈'); if(reachedFinish)Toast.show('قطعة وصلت البيت 🏠'); this.finishTurn(rolledSix||captured||reachedFinish);
   },
-
   finishTurn(extra){
     if(!extra){
       state.turnSeat = (state.turnSeat+1)%state.numPlayers;
       state.sixStreak=0;
     }
     Storage.save();
-    Render.status(); Render.legend();
+    // مهم: إعادة بناء اللوحة تعيد ربط زر الزهر بالدور الجديد، خصوصاً عند رجوع الدور للاعب.
+    Render.all();
     this.syncIfHost();
     this.maybeAiKick();
   },
 
   maybeAiKick(){
-    if(state.gameOver) return;
+    if(state.gameOver || state.awaitingMove || state.aiBusy) return;
     const seat = state.seats[state.turnSeat];
     if(!seat) return;
     if(seat.type==='ai' && (!state.netMode || (typeof LudoNet!=='undefined' && LudoNet.role==='host'))){
-      setTimeout(()=>AI.takeTurn(), 700);
+      state.aiBusy=true;
+      Render.all();
+      if(state.aiTimer) clearTimeout(state.aiTimer);
+      state.aiTimer=setTimeout(()=>{
+        state.aiTimer=null;
+        state.aiBusy=false;
+        if(!state.gameOver && !state.awaitingMove && state.seats[state.turnSeat]?.type==='ai') AI.takeTurn();
+      }, 650);
     }
   }
 };
@@ -676,7 +764,7 @@ const Game = {
 /* ---------------------- كمبيوتر ---------------------- */
 const AI = {
   takeTurn(){
-    if(state.gameOver) return;
+    if(state.gameOver || state.awaitingMove) return;
     if(state.netMode && (typeof LudoNet==='undefined' || LudoNet.role!=='host')) return;
     const seat=state.turnSeat;
     if(!state.seats[seat] || state.seats[seat].type!=='ai') return;
@@ -699,7 +787,7 @@ const AI = {
       if(pos<RL-1){
         const corner=Game.cornerOf(seat);
         const abs=(corner*CFG.ARM+pos)%RL;
-        const isSafe=(abs%CFG.ARM===0)||(abs%CFG.ARM===Math.floor(CFG.ARM/2));
+        const isSafe=Game.isSafeAbs(abs);
         for(let s2=0;s2<state.numPlayers;s2++){
           if(s2===seat) continue;
           const c2=Game.cornerOf(s2);
@@ -721,188 +809,209 @@ const AI = {
    الرسم
    ================================================================== */
 const Board = {
-  // نقطة على المحيط: مربّع كلاسيكي (2-4 لاعبين) أو نجمة/مضلع (5-8 لاعبين)
-  // corner: رقم الزاوية (0..C-1)  |  f: نسبة التقدّم جوه الضلع/القطاع (0..1)
+  // مسار كلاسيكي 15×15 لأربع لاعبين. المنطق نفسه (32 خانة) لكن الرسم
+  // بقى زي تقسيمة ليدو الأصلية: ممرات على شكل +، بيوت 6×6، ومركز واضح.
+  // مسار ليدو الأصلي 15×15 (52 مربع ظاهر حول اللوح)
+  // المنطق الداخلي يظل 32 خطوة كما هو، لكن نعرض التقسيمة الصحيحة للوحة.
+  classicPath(){
+    return [
+      [1,6],[2,6],[3,6],[4,6],[5,6],[6,5],[6,4],[6,3],[6,2],[6,1],[6,0],[7,0],[8,0],
+      [8,1],[8,2],[8,3],[8,4],[8,5],[9,6],[10,6],[11,6],[12,6],[13,6],[14,6],[14,7],[14,8],
+      [13,8],[12,8],[11,8],[10,8],[9,8],[8,9],[8,10],[8,11],[8,12],[8,13],[8,14],[7,14],[6,14],
+      [6,13],[6,12],[6,11],[6,10],[6,9],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8],[0,7],[0,6]
+    ];
+  },
+  // تحويل الـ 32 خطوة الموجودة في نظام اللعب إلى نقاط موزعة على مسار الـ52 الأصلي.
+  classicLogicIndex(abs, visibleLen){
+    return abs % visibleLen;
+  },
+  gridPoint(gx,gy,size){ const u=size/15; return {x:(gx+.5)*u,y:(gy+.5)*u,u}; },
   edgePoint(classic, corner, f, C, R){
     if(!classic){
       const ang=-Math.PI/2 + 2*Math.PI*(corner+f)/C;
       return {x:R*Math.cos(ang), y:R*Math.sin(ang)};
     }
-    const signs=[[-1,-1],[1,-1],[1,1],[-1,1]]; // ف.ع.ي: فوق-شمال، فوق-يمين، تحت-يمين، تحت-شمال
+    const signs=[[-1,-1],[1,-1],[1,1],[-1,1]];
     const a=signs[corner%4], b=signs[(corner+1)%4];
     return { x:(a[0]+(b[0]-a[0])*f)*R, y:(a[1]+(b[1]-a[1])*f)*R };
   },
   cornerPoint(classic, corner, C, R){ return this.edgePoint(classic, corner, 0, C, R); },
 
   build(){
-    const wrap = document.getElementById('ludoBoard');
+    const wrap=document.getElementById('ludoBoard');
     wrap.innerHTML='';
-    const size = wrap.clientWidth || 320;
-    const classic = state.numPlayers<=4;           // شكل تربيعي ثابت (زي الليدو الأصلي) لحد 4 لاعبين
-    const C = Game.cornerCount();                    // 4 لو كلاسيك، أو نفس عدد اللاعبين لو نجمة (5-8)
-    const RL = CFG.ARM*C, FIN = RL-1+CFG.HOME_STEPS;
-    const cx=size/2, cy=size/2;
-    const cornerMap = cornerMapFor(state.numPlayers); // seat -> corner
-    const seatAtCorner = corner => { const i=cornerMap.indexOf(corner); return i>=0?i:null; };
+    const size=wrap.clientWidth||320, cx=size/2, cy=size/2;
+    const classic=state.numPlayers<=4, C=Game.cornerCount(), RL=CFG.ARM*C, FIN=RL-1+CFG.HOME_STEPS;
+    const cornerMap=cornerMapFor(state.numPlayers);
+    const seatAtCorner=c=>{const i=cornerMap.indexOf(c); return i>=0?i:null;};
+    wrap.classList.toggle('classic',classic);
 
-    const Rring = size*(classic?0.31:0.37), Rhome0=size*(classic?0.27:0.34),
-          Rcenter = size*0.15, Ryard = size*(classic?0.38:0.455);
+    if(classic){ this.buildClassic(wrap,size,cx,cy,C,RL,FIN,cornerMap,seatAtCorner); return; }
+    this.buildPolygon(wrap,size,cx,cy,C,RL,FIN,cornerMap,seatAtCorner);
+  },
 
-    // مركز اللوح
-    const hub=document.createElement('div'); hub.className='center-hub';
-    hub.style.width=hub.style.height=(Rcenter*2)+'px';
-    hub.style.left=(cx-Rcenter)+'px'; hub.style.top=(cy-Rcenter)+'px';
-    wrap.appendChild(hub);
-    for(let c=0;c<C;c++){
-      const s=seatAtCorner(c); if(s===null) continue;
-      const mid=this.edgePoint(classic,c,0.5,C,Rcenter*0.55);
-      const b=document.createElement('div'); b.className='hub-slot';
-      b.style.left=(cx+mid.x-9)+'px'; b.style.top=(cy+mid.y-9)+'px';
-      b.style.background=PALETTE[c].hex;
-      b.textContent=(state.finished[s]||0);
-      wrap.appendChild(b);
-    }
-
-    // مربعات الدايرة (الطريق المشترك)
-    const approxStep = classic ? (8*Rring/RL) : (2*Math.PI*Rring/RL);
-    const cellSize = Math.max(9, Math.min(20, approxStep*0.72));
-    for(let i=0;i<RL;i++){
-      const owner=Math.floor(i/CFG.ARM);
-      const local=i%CFG.ARM;
-      const p=this.edgePoint(classic, owner, local/CFG.ARM, C, Rring);
-      const isEntry=(local===0), isStar=(local===Math.floor(CFG.ARM/2));
-      const el=document.createElement('div'); el.className='ring-cell';
-      el.style.width=el.style.height=cellSize+'px';
-      el.style.left=(cx+p.x-cellSize/2)+'px';
-      el.style.top=(cy+p.y-cellSize/2)+'px';
-      const activeOwner = seatAtCorner(owner)!==null;
-      if(isEntry && activeOwner){ el.style.background=PALETTE[owner].hex; el.classList.add('safe'); }
-      else if(isStar && activeOwner){ el.style.background=hexAlpha(PALETTE[owner].hex,0.4); el.classList.add('safe'); }
-      wrap.appendChild(el);
-    }
-
-    // أعمدة البيت النهائي — من نص الضلع/القطاع لجوه المركز
-    const homeCellSize=cellSize*1.05;
-    for(let c=0;c<C;c++){
-      if(seatAtCorner(c)===null) continue;
-      const mid=this.edgePoint(classic,c,0.5,C,1);
-      for(let h=0;h<CFG.HOME_STEPS;h++){
-        const t=(h+1)/(CFG.HOME_STEPS+1);
-        const R = Rhome0 - t*(Rhome0-Rcenter);
-        const el=document.createElement('div'); el.className='home-cell';
-        el.style.width=el.style.height=homeCellSize+'px';
-        el.style.left=(cx+mid.x*R-homeCellSize/2)+'px';
-        el.style.top=(cy+mid.y*R-homeCellSize/2)+'px';
-        el.style.background=hexAlpha(PALETTE[c].hex,0.55);
-        wrap.appendChild(el);
-      }
-    }
-
-    // بيوت اللاعبين (الزوايا/الأركان)
-    const yardSize = classic ? Math.max(46, Math.min(92, size*0.24))
-                              : Math.max(38, Math.min(76, (2*Math.PI*Ryard/C)*0.72));
+  buildClassic(wrap,size,cx,cy,C,RL,FIN,cornerMap,seatAtCorner){
+    const u=size/15, cell=u*.96, path=this.classicPath();
+    const addCell=(cls,gx,gy,bg)=>{const e=document.createElement('div');e.className=cls;e.style.width=e.style.height=cell+'px';e.style.left=(gx*u+(u-cell)/2)+'px';e.style.top=(gy*u+(u-cell)/2)+'px';if(bg)e.style.background=bg;wrap.appendChild(e);return e;};
     const yardPos={};
-    for(let c=0;c<C;c++){
-      const s=seatAtCorner(c);
-      const p=this.cornerPoint(classic,c,C,Ryard);
-      const left=cx+p.x-yardSize/2, top=cy+p.y-yardSize/2;
-      if(s!==null) yardPos[c]={left,top,size:yardSize};
-      const el=document.createElement('div'); el.className='yard-badge';
-      el.style.width=el.style.height=yardSize+'px';
-      el.style.left=left+'px'; el.style.top=top+'px';
-      if(s!==null){
-        el.style.background=hexAlpha(PALETTE[c].hex,0.28);
-        el.style.borderColor=PALETTE[c].hex;
-      } else {
-        el.style.background='rgba(255,255,255,.04)';
-        el.style.borderColor='rgba(255,255,255,.18)';
-        el.style.borderStyle='dashed';
-      }
-      wrap.appendChild(el);
+    const yards=[[0,0],[9,0],[9,9],[0,9]];
 
-      if(s!==null){
-        const label=document.createElement('div'); label.className='seat-name-tag';
-        const lp=this.cornerPoint(classic,c,C,Ryard+yardSize*0.62);
-        label.style.left=(cx+lp.x)+'px';
-        label.style.top=(cy+lp.y)+'px';
-        label.style.color=PALETTE[c].hex;
-        label.textContent = (state.seats[s] && state.seats[s].name) ? state.seats[s].name.slice(0,10) : ('لاعب '+(s+1));
-        wrap.appendChild(label);
-      }
+    // البيوت الأربعة 6×6 في الزوايا بالضبط مثل اللوحة الأصلية — تظهر بلونها
+    // دايماً حتى لو مفيش لاعب فيها فعلياً، عشان كل الألوان تبان على الأرض.
+    // القطع نفسها بس هي اللي بتتحط حسب عدد اللاعبين الفعلي.
+    for(let c=0;c<4;c++){
+      const [gx,gy]=yards[c];
+      const yard=document.createElement('div');yard.className='yard-block';
+      yard.style.left=(gx*u)+'px';yard.style.top=(gy*u)+'px';yard.style.width=yard.style.height=(6*u)+'px';
+      yard.style.background=PALETTE[c].hex;wrap.appendChild(yard);
+      const inner=document.createElement('div');inner.className='yard-inner';inner.style.width=inner.style.height=(4.35*u)+'px';
+      inner.style.left=(gx*u+.825*u)+'px';inner.style.top=(gy*u+.825*u)+'px';wrap.appendChild(inner);
+      const pipSize=u*1.18, pts=[[1.8,1.8],[4.2,1.8],[1.8,4.2],[4.2,4.2]];
+      pts.forEach(([px,py])=>{const p=document.createElement('div');p.className='yard-pip';p.style.width=p.style.height=pipSize+'px';p.style.left=((gx+px)*u-pipSize/2)+'px';p.style.top=((gy+py)*u-pipSize/2)+'px';wrap.appendChild(p);});
+      yardPos[c]={gx,gy,u};
     }
 
-    // القطع
-    const tokenSize=Math.max(12,Math.min(22,cellSize*1.15));
-    const key=(corner,pos)=>{
-      if(pos===-1) return null;
-      if(pos>=FIN) return 'fin:'+corner;
-      if(pos<RL-1) return 'ring:'+((corner*CFG.ARM+pos)%RL);
-      return 'home:'+corner+':'+(pos-(RL-1));
-    };
+    // كل مربعات المسار الأصلي الـ52 تظهر في أماكنها الصحيحة.
+    // مربعات الأمان ثابتة في نفس مكان لعبة ليدو المرجعية، وليست مرتبطة
+    // بتحويل الـ32 خطوة حتى لا تتحرك مربعاً للأمام أو للخلف عند الرسم.
+    // أماكن التأمين ثابتة بالضبط على الأربع بلاطات المرجعية في مسار 15×15.
+    // لا ترتبط بعدد اللاعبين ولا بمربع البداية.
+    const safeCells = new Map([
+      ['6,2',true],  // بعد بداية الأخضر بـ 8 بلاطات
+      ['12,6',true], // بعد بداية الأصفر بـ 8 بلاطات
+      ['8,12',true], // بعد بداية الأزرق بـ 8 بلاطات
+      ['2,8',true]   // بعد بداية الأحمر بـ 8 بلاطات
+    ]);
+    // أول بلاطة بينزل عليها أي لاعب لما يطلع من بيته برقم 6: أمان زي باقي
+    // مربعات الأمان (ممنوع حد ياكل حد عليه نهائياً)، بس شكلها بلون بيته
+    // الفاقع من غير نجمة، مش الشكل الدهبي بتاع باقي مربعات الأمان.
+    const startCells = new Map([
+      ['1,6',0],  // بداية الأخضر
+      ['8,1',1],  // بداية الأصفر
+      ['13,8',2], // بداية الأزرق
+      ['6,13',3]  // بداية الأحمر
+    ]);
+    // أسهم اتجاه السير: واحد عند كل ذراع (فوق/تحت/يمين/شمال)، ثابتين
+    // في مكان الانعطاف بره كل بيت، بالظبط زي اللعبة المرجعية.
+    const arrowCells = new Map([
+      ['7,0','↓'],   // أصفر: فوق
+      ['0,7','→'],   // أخضر: شمال
+      ['14,7','←'],  // أزرق: يمين
+      ['7,14','↑']   // أحمر: تحت
+    ]);
+    path.forEach(([gx,gy])=>{
+      const key=gx+','+gy;
+      const e=addCell('ring-cell',gx,gy);
+      if(safeCells.has(key)) e.classList.add('safe');
+      const startOwner=startCells.get(key);
+      if(startOwner!==undefined){ e.classList.add('start-safe'); e.style.background=PALETTE[startOwner].hex; }
+      const arrowDir=arrowCells.get(key);
+      if(arrowDir){ e.classList.add('dir-arrow'); e.setAttribute('data-arrow',arrowDir); }
+    });
+
+    // ممرات الوصول للوسط: كل لون خارج من بيته في الاتجاه الصحيح نحو المركز.
+    const homes=[
+      [[1,7],[2,7],[3,7],[4,7],[5,7]],       // أخضر ←
+      [[7,1],[7,2],[7,3],[7,4],[7,5]],       // أصفر ↓
+      [[13,7],[12,7],[11,7],[10,7],[9,7]],   // أزرق →
+      [[7,13],[7,12],[7,11],[7,10],[7,9]]    // أحمر ↑
+    ];
+    for(let c=0;c<4;c++) homes[c].forEach(([gx,gy])=>addCell('home-cell',gx,gy,PALETTE[c].hex));
+
+    // مركز 3×3: أصفر فوق، أزرق يمين، أحمر تحت، أخضر شمال.
+    const hub=document.createElement('div');hub.className='center-hub classic';hub.style.left=(6*u)+'px';hub.style.top=(6*u)+'px';hub.style.width=hub.style.height=(3*u)+'px';
+    const tris=[
+      {c:0,clip:'polygon(0 0,0 100%,50% 50%)'},
+      {c:1,clip:'polygon(0 0,100% 0,50% 50%)'},
+      {c:2,clip:'polygon(100% 0,100% 100%,50% 50%)'},
+      {c:3,clip:'polygon(100% 100%,0 100%,50% 50%)'}
+    ];
+    tris.forEach(t=>{const d=document.createElement('div');d.className='center-tri';d.style.clipPath=d.style.webkitClipPath=t.clip;d.style.background=PALETTE[t.c].hex;hub.appendChild(d);});wrap.appendChild(hub);
+    this.drawTokensClassic(wrap,size,u,path,homes,yardPos,RL,FIN,cornerMap);
+    this.drawPlayerDiceClassic(wrap,size,u,cornerMap);
+  },
+
+  drawPlayerDiceClassic(wrap,size,u,cornerMap){
+    const faces=['🎲','⚀','⚁','⚂','⚃','⚄','⚅'];
+    const cubeHTML=()=>{const nums=[1,2,3,4,5,6];const on={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};return '<div class=\"dice-cube\">'+nums.map(n=>'<div class=\"cube-face f'+n+'\">'+Array.from({length:9},(_,i)=>'<i class=\"'+(on[n].includes(i)?'on':'')+'\"></i>').join('')+'</div>').join('')+'</div>';};
+    const diceStoneHTML=(n)=>{const on={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};return '<div class=\"dice-stone\"><div class=\"stone-face\">'+Array.from({length:9},(_,i)=>'<i class=\"'+(on[n]?.includes(i)?'on':'')+'\"></i>').join('')+'</div></div>';};
+    // كل الزهور فوق أو تحت اللوح بس (مش على الجناب) عشان محدش يغطي على بلاطة.
+    const spots=[
+      {x:2.6, y:-2.35}, // الأخضر: أعلى اللوحة (يسار) - برّه حدود اللوح خالص
+      {x:11.4,y:-2.35}, // الأصفر: أعلى اللوحة (يمين) - برّه حدود اللوح خالص
+      {x:11.4,y:17.35}, // الأزرق: أسفل اللوحة (يمين) - برّه حدود اللوح خالص
+      {x:2.6, y:17.35}  // الأحمر: أسفل اللوحة (يسار) - برّه حدود اللوح خالص
+    ];
+    for(let s=0;s<state.numPlayers;s++){
+      const c=cornerMap[s], spot=spots[c], die=document.createElement('div');
+      die.className='player-die'; die.style.setProperty('--die-color',PALETTE[c].hex);
+      const active=!state.gameOver && !state.awaitingMove && state.turnSeat===s;
+      const mine=active && (state.localAllHuman || s===state.mySeat);
+      if(mine) die.classList.add('mine-turn'); else die.classList.add('disabled');
+      if(state.rolling && state.rollingSeat===s) die.classList.add('rolling');
+      die.style.left=(spot.x*u)+'px'; die.style.top=(spot.y*u)+'px';
+      const val=Array.isArray(state.lastDice)?state.lastDice[s]:null;
+      if(state.rolling && state.rollingSeat===s) die.innerHTML=cubeHTML(); else if(val) die.innerHTML=diceStoneHTML(val); else die.innerHTML=diceStoneHTML(1);
+      die.onclick=()=>{ if(mine && !state.aiBusy) Game.requestRoll(); };
+      const lab=document.createElement('span'); lab.className='player-die-label';
+      lab.textContent=(!state.localAllHuman && s===state.mySeat)?'أنت':(state.seats[s]?.name||'لاعب'); die.appendChild(lab);
+      wrap.appendChild(die);
+    }
+    if(state.awaitingMove && (state.localAllHuman || state.turnSeat===state.mySeat)){const hint=document.createElement('div');hint.className='turn-hint-board';hint.textContent='اختار القطعة اللي هتحركها';wrap.appendChild(hint);}
+  },
+
+  drawTokensClassic(wrap,size,u,path,homes,yardPos,RL,FIN,cornerMap){
+    const tokenSize=Math.max(12,Math.min(22,u*.92));
+    const logicToVisible=abs=>this.classicLogicIndex(abs,path.length);
+    const key=(corner,pos)=>pos===-1?null:pos>=FIN?'fin:'+corner:pos<RL-1?'ring:'+logicToVisible((corner*CFG.ARM+pos)%RL):'home:'+corner+':'+(pos-(RL-1));
     const groups={};
-    for(let s=0;s<state.numPlayers;s++){
-      if(!state.tokens[s]) continue;
-      const corner=cornerMap[s];
-      state.tokens[s].forEach((pos,ti)=>{ const k=key(corner,pos); if(k){ (groups[k]=groups[k]||[]).push(s+':'+ti); } });
-    }
-    const offs=[[0,0],[7,0],[-7,0],[0,7],[0,-7],[5,5],[-5,5],[5,-5]];
-    for(let s=0;s<state.numPlayers;s++){
-      if(!state.tokens[s]) continue;
-      const corner=cornerMap[s];
-      state.tokens[s].forEach((pos,ti)=>{
-        const el=document.createElement('div'); el.className='token';
-        el.style.width=el.style.height=tokenSize+'px';
-        el.style.background=`radial-gradient(circle at 32% 28%, #fff8, transparent 45%), ${PALETTE[corner].hex}`;
-        let x,y;
-        if(pos===-1){
-          const slot=[[-1,-1],[1,-1],[-1,1],[1,1]][ti];
-          const yp=yardPos[corner];
-          x = yp.left+yp.size/2 + slot[0]*yp.size*0.23 - tokenSize/2;
-          y = yp.top+yp.size/2 + slot[1]*yp.size*0.23 - tokenSize/2;
-        } else if(pos>=FIN){
-          const mid=this.edgePoint(classic,corner,0.5,C,Rcenter*0.55);
-          const grp=groups['fin:'+corner]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
-          const off=offs[gi%offs.length];
-          x=cx+mid.x+off[0]-tokenSize/2; y=cy+mid.y+off[1]-tokenSize/2;
-        } else if(pos<RL-1){
-          const abs=(corner*CFG.ARM+pos)%RL;
-          const owner=Math.floor(abs/CFG.ARM), local=abs%CFG.ARM;
-          const p=this.edgePoint(classic,owner,local/CFG.ARM,C,Rring);
-          const grp=groups['ring:'+abs]||[]; const gi=Math.max(0,grp.indexOf(s+':'+ti));
-          const off=offs[gi%offs.length];
-          x=cx+p.x+off[0]-tokenSize/2; y=cy+p.y+off[1]-tokenSize/2;
-        } else {
-          const hIdx=pos-(RL-1); const t=(hIdx+1)/(CFG.HOME_STEPS+1);
-          const R=Rhome0-t*(Rhome0-Rcenter);
-          const mid=this.edgePoint(classic,corner,0.5,C,1);
-          x=cx+mid.x*R-tokenSize/2; y=cy+mid.y*R-tokenSize/2;
-        }
-        el.style.left=x+'px'; el.style.top=y+'px';
-        if(Game.isMovable(s,ti)){ el.classList.add('movable'); el.onclick=()=>Game.onTokenTap(s,ti); }
-        wrap.appendChild(el);
-      });
-    }
+    for(let s=0;s<state.numPlayers;s++) state.tokens[s]?.forEach((pos,ti)=>{const k=key(cornerMap[s],pos);if(k)(groups[k]=groups[k]||[]).push(s+':'+ti);});
+    const offs=[[0,0],[1,0],[-1,0],[0,1],[0,-1],[.75,.75],[-.75,.75],[.75,-.75]];
+    for(let s=0;s<state.numPlayers;s++) state.tokens[s]?.forEach((pos,ti)=>{
+      const corner=cornerMap[s],e=document.createElement('div');e.className='token';e.style.setProperty('--token-color',PALETTE[corner].hex);e.style.width=e.style.height=tokenSize+'px';e.style.background=`radial-gradient(circle at 32% 28%, #fff8, transparent 45%), ${PALETTE[corner].hex}`;let x,y;
+      if(pos===-1){const slot=[[-1,-1],[1,-1],[-1,1],[1,1]][ti],yp=yardPos[corner],px=(yp.gx+3+slot[0]*1.2)*u,py=(yp.gy+3+slot[1]*1.2)*u;x=px-tokenSize/2;y=py-tokenSize/2;}
+      else if(pos>=FIN){x=7.5*u-tokenSize/2;y=7.5*u-tokenSize/2;}
+      else if(pos<RL-1){const abs=(corner*CFG.ARM+pos)%RL,vi=logicToVisible(abs),[gx,gy]=path[vi],grp=groups['ring:'+vi]||[],idx=Math.max(0,grp.indexOf(s+':'+ti)),count=grp.length,scale=count>1?(count===2?.68:count===3?.58:.50):1,ts=tokenSize*scale,off=offs[idx%offs.length],spread=ts*.48;e.style.width=e.style.height=ts+'px';x=(gx+.5)*u+off[0]*spread-ts/2;y=(gy+.5)*u+off[1]*spread-ts/2;}
+      else if(pos>=FIN){
+        // القطعة وصلت البيت: بتتحط جوه مثلث لونها في النص، في شبكة صغيرة
+        // 2×2 بفاصل بسيط عشان الأربع قطع تبان جمب بعض من غير ما تتراكب.
+        const centroids=[[6.5,7.5],[7.5,6.5],[8.5,7.5],[7.5,8.5]];
+        const [ccxu,ccyu]=centroids[corner];
+        const gridOffsets=[[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]];
+        const [ox,oy]=gridOffsets[ti%4];
+        const hts=Math.max(7,tokenSize*0.5), step=hts+2;
+        e.style.width=e.style.height=hts+'px';
+        x=ccxu*u+ox*step-hts/2; y=ccyu*u+oy*step-hts/2;
+      }
+      else {const hi=pos-(RL-1),[gx,gy]=homes[corner][hi];x=(gx+.5)*u-tokenSize/2;y=(gy+.5)*u-tokenSize/2;}
+      e.style.left=x+'px';e.style.top=y+'px';if(Game.isMovable(s,ti)){e.classList.add('movable');e.onclick=()=>Game.onTokenTap(s,ti);}wrap.appendChild(e);
+    });
+  },
+
+  buildPolygon(wrap,size,cx,cy,C,RL,FIN,cornerMap,seatAtCorner){
+    const Rring=size*.37,Rhome0=size*.34,Rcenter=size*.15,Ryard=size*.455,homeOwnerOf=c=>(c-1+C)%C;
+    const hub=document.createElement('div');hub.className='center-hub';hub.style.width=hub.style.height=(Rcenter*2)+'px';hub.style.left=(cx-Rcenter)+'px';hub.style.top=(cy-Rcenter)+'px';wrap.appendChild(hub);
+    const yardPos={};
+    const cellSize=Math.max(9,Math.min(20,(2*Math.PI*Rring/RL)*.72));
+    for(let i=0;i<RL;i++){const owner=Math.floor(i/CFG.ARM),local=i%CFG.ARM,p=this.edgePoint(false,owner,local/CFG.ARM,C,Rring),e=document.createElement('div');e.className='ring-cell';e.style.width=e.style.height=cellSize+'px';e.style.left=(cx+p.x-cellSize/2)+'px';e.style.top=(cy+p.y-cellSize/2)+'px';const active=seatAtCorner(owner)!==null;if(local===0&&active){e.style.background=PALETTE[owner].hex;e.classList.add('safe');}else if(local===4&&active){e.style.background=hexAlpha(PALETTE[owner].hex,.4);e.classList.add('safe');}wrap.appendChild(e);}
+    for(let c=0;c<C;c++)if(seatAtCorner(c)!==null){const mid=this.edgePoint(false,homeOwnerOf(c),.5,C,1);for(let h=0;h<CFG.HOME_STEPS;h++){const t=(h+1)/(CFG.HOME_STEPS+1),R=Rhome0-t*(Rhome0-Rcenter),e=document.createElement('div');e.className='home-cell';e.style.width=e.style.height=(cellSize*1.05)+'px';e.style.left=(cx+mid.x*R-cellSize*.525)+'px';e.style.top=(cy+mid.y*R-cellSize*.525)+'px';e.style.background=PALETTE[c].hex;wrap.appendChild(e);}}
+    const yardSize=Math.max(38,Math.min(76,(2*Math.PI*Ryard/C)*.72));
+    for(let c=0;c<C;c++){const s=seatAtCorner(c),p=this.cornerPoint(false,c,C,Ryard),left=cx+p.x-yardSize/2,top=cy+p.y-yardSize/2;if(s!==null)yardPos[c]={left,top,size:yardSize};const e=document.createElement('div');e.className='yard-badge';e.style.width=e.style.height=yardSize+'px';e.style.left=left+'px';e.style.top=top+'px';e.style.background=s!==null?hexAlpha(PALETTE[c].hex,.28):'rgba(255,255,255,.04)';e.style.borderColor=s!==null?PALETTE[c].hex:'rgba(255,255,255,.18)';wrap.appendChild(e);}
+    // القطع في وضع 5-8 كما كانت منطقياً حول المضلع
+    const tokenSize=Math.max(12,Math.min(22,cellSize*1.15));
+    for(let s=0;s<state.numPlayers;s++)state.tokens[s]?.forEach((pos,ti)=>{const corner=cornerMap[s],e=document.createElement('div');e.className='token';e.style.setProperty('--token-color',PALETTE[corner].hex);e.style.width=e.style.height=tokenSize+'px';e.style.background=`radial-gradient(circle at 32% 28%, #fff8, transparent 45%), ${PALETTE[corner].hex}`;let x,y;if(pos===-1){const slot=[[-1,-1],[1,-1],[-1,1],[1,1]][ti],yp=yardPos[corner];x=yp.left+yp.size/2+slot[0]*yp.size*.23-tokenSize/2;y=yp.top+yp.size/2+slot[1]*yp.size*.23-tokenSize/2;}else if(pos>=FIN){const dirp=this.edgePoint(false,homeOwnerOf(corner),.5,C,1);const clusterR=Rcenter*0.55;const ccx2=cx+dirp.x*clusterR,ccy2=cy+dirp.y*clusterR;const gridOffsets=[[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]];const [oxp,oyp]=gridOffsets[ti%4];const htsP=Math.max(7,tokenSize*0.5),stepP=htsP+2;e.style.width=e.style.height=htsP+'px';x=ccx2+oxp*stepP-htsP/2;y=ccy2+oyp*stepP-htsP/2;}else if(pos<RL-1){const abs=(corner*CFG.ARM+pos)%RL,owner=Math.floor(abs/CFG.ARM),local=abs%CFG.ARM,p=this.edgePoint(false,owner,local/CFG.ARM,C,Rring);x=cx+p.x-tokenSize/2;y=cy+p.y-tokenSize/2;}else{const h=pos-(RL-1),mid=this.edgePoint(false,homeOwnerOf(corner),.5,C,1),R=Rhome0-((h+1)/(CFG.HOME_STEPS+1))*(Rhome0-Rcenter);x=cx+mid.x*R-tokenSize/2;y=cy+mid.y*R-tokenSize/2;}e.style.left=x+'px';e.style.top=y+'px';if(Game.isMovable(s,ti)){e.classList.add('movable');e.onclick=()=>Game.onTokenTap(s,ti);}wrap.appendChild(e);});
   }
 };
-
 const Render = {
   all(){ Board.build(); this.status(); this.legend(); },
   status(){
     const seat = state.seats[state.turnSeat];
     const pill = document.getElementById('turnPill');
     if(!seat){ pill.textContent=''; return; }
-    const mine = state.turnSeat===state.mySeat;
-    pill.textContent = mine ? 'دورك' : (seat.name+' يلعب');
-    pill.style.color = PALETTE[state.turnSeat].hex;
-    const die=document.getElementById('dieFace');
-    const faces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
-    die.textContent = state.dice ? faces[state.dice] : '🎲';
-    const rollBtn=document.getElementById('rollBtn');
-    const canRoll = !state.gameOver && !state.awaitingMove && state.turnSeat===state.mySeat;
-    rollBtn.disabled = !canRoll;
-    rollBtn.textContent = state.awaitingMove ? 'دوّر على قطعة تلمع' : (mine ? 'ارمِ الزهر' : 'استنى دورك');
-    const hint=document.getElementById('diceHint');
-    hint.textContent = state.awaitingMove && mine ? 'دوس على القطعة اللي عايز تحركها' : '';
+    const mine = state.localAllHuman || state.turnSeat===state.mySeat;
+    pill.textContent = (mine && !state.localAllHuman) ? 'دورك' : (seat.name+' يلعب');
+    pill.style.color = PALETTE[Game.cornerOf(state.turnSeat)].hex;
+    // الزهر مرسوم بجوار كل لاعب داخل اللوحة، وإعادة بناء اللوحة تحدث في Render.all().
   },
   legend(){
     const wrap=document.getElementById('seatLegend');
@@ -910,17 +1019,17 @@ const Render = {
     state.seats.forEach((seat,i)=>{
       const chip=document.createElement('div');
       chip.className='seat-chip'+(i===state.turnSeat?' active':'')+((state.finished[i]||0)===4?' out':'');
-      const dot=document.createElement('span'); dot.className='dot'; dot.style.background=PALETTE[i].hex;
+      const dot=document.createElement('span'); dot.className='dot'; dot.style.background=PALETTE[Game.cornerOf(i)].hex;
       chip.appendChild(dot);
       const label=document.createElement('span');
-      label.textContent = (i===state.mySeat?'أنت':seat.name) + (seat.type==='ai'?' 🤖':'') + ' ('+(state.finished[i]||0)+'/4)';
+      label.textContent = ((!state.localAllHuman && i===state.mySeat)?'أنت':seat.name) + (seat.type==='ai'?' 🤖':'') + ' ('+(state.finished[i]||0)+'/4)';
       chip.appendChild(label);
       wrap.appendChild(chip);
     });
   },
   showResult(){
     const w=state.winnerSeat;
-    const mine = w===state.mySeat;
+    const mine = !state.localAllHuman && w===state.mySeat;
     const title = mine ? '🏆 كسبت!' : (state.seats[w].name+' كسب 🏆');
     let actions;
     if(state.netMode){
